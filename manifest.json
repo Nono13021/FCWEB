@@ -1,0 +1,15 @@
+{
+  "name": "FCWEB",
+  "short_name": "FCWEB",
+  "display": "standalone",
+  "start_url": ".",
+  "background_color": "#0077ff",
+  "theme_color": "#0077ff",
+  "icons": [
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

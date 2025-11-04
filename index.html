@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="manifest" href="manifest.json">
+<title>FcWeb </title>
+<style>
+:root{--bg:#111;--bg2:#1a1a1a;--txt:#fff;--txt2:#aaa;--acc:#ffb300;--acc2:#e09b00}
+.light-mode{--bg:#f5f5f5;--bg2:#fff;--txt:#111;--txt2:#555}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--txt);margin:0;padding:20px;text-align:center;transition:0.3s}
+h1,h2,h3{margin:10px 0}
+button{padding:10px 15px;margin:5px;border:none;border-radius:8px;background:var(--acc);cursor:pointer;font-weight:bold;transition:0.15s;color:#000}
+button:hover{background:var(--acc2);transform:scale(1.03)}
+button:disabled{opacity:0.5;cursor:not-allowed}
+.team{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:10px 0}
+.card{width:120px;height:220px;border-radius:12px;background:#333;position:relative;text-align:center;box-shadow:0 0 10px rgba(0,0,0,.5);padding:8px;box-sizing:border-box;overflow:hidden;cursor:pointer;transition:0.2s}
+.card:hover{transform:translateY(-5px);box-shadow:0 5px 20px rgba(0,0,0,.7)}
+.card img{width:100%;height:100px;object-fit:contain;margin-bottom:5px;border-radius:6px}
+.card .rating{position:absolute;top:8px;left:8px;font-weight:700;font-size:18px}
+.card .position{position:absolute;top:8px;right:8px;font-weight:700;font-size:14px}
+.card .player-name{position:absolute;bottom:10px;width:100%;font-weight:700;font-size:11px;left:0;padding:0 5px}
+.card .xp{position:absolute;bottom:110px;width:100%;font-size:10px;left:0}
+.card .stats{position:absolute;bottom:90px;width:100%;font-size:10px;left:0;opacity:0.8}
+.card .contract{position:absolute;bottom:70px;width:100%;font-size:10px;left:0;color:#4CAF50}
+.card .forme{position:absolute;bottom:50px;width:100%;font-size:10px;left:0}
+.gold{background:linear-gradient(135deg,#caac00,#cda700)}
+.silver{background:linear-gradient(135deg,#dcdcdc,#808080)}
+.bronze{background:linear-gradient(135deg,#cd7f32,#8b4513)}
+.legend{background:linear-gradient(135deg,#aaa,#555)}
+.mythic{background:linear-gradient(135deg,#d400ff,#7b00ff);border:2px solid #fff}
+.card.locked{filter:grayscale(100%) brightness(.5);opacity:.7;cursor:not-allowed}
+.pack-animation{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.92);display:none;flex-direction:column;justify-content:center;align-items:center;z-index:1000}
+.pack-card{width:140px;height:200px;margin:10px;border-radius:12px;transform:scale(0);animation:flip .45s forwards}
+@keyframes flip{to{transform:scale(1) rotateY(360deg)}}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.95);justify-content:center;align-items:center;z-index:2000;overflow-y:auto}
+.modal-inner{max-width:640px;padding:20px;text-align:left;background:var(--bg2);border-radius:10px;margin:20px;max-height:80vh;overflow-y:auto}
+.small-btn{padding:4px 6px;font-size:10px;border-radius:6px;background:#666;color:#fff;border:none;cursor:pointer;margin:2px}
+.info-line{opacity:.85;margin:6px 0}
+.badge{display:inline-block;padding:5px 10px;margin:5px;border-radius:20px;background:#4CAF50;font-size:12px}
+.badge.locked{background:#666;opacity:0.5}
+.match-result{background:var(--bg2);padding:10px;margin:10px 0;border-radius:8px;border-left:4px solid var(--acc)}
+.defi-card{background:var(--bg2);padding:15px;margin:10px 0;border-radius:8px;border-left:4px solid #2196F3}
+.defi-card.completed{border-left-color:#4CAF50;opacity:0.7}
+.theme-toggle{position:fixed;top:20px;right:20px;z-index:100;font-size:20px}
+.tabs{display:flex;justify-content:center;gap:10px;margin:20px 0;flex-wrap:wrap}
+.tab{padding:10px 20px;background:var(--bg2);border:2px solid var(--acc);border-radius:8px;cursor:pointer;transition:0.2s}
+.tab.active{background:var(--acc);color:#000}
+.section{display:none}
+.section.active{display:block}
+</style>
+</head>
+<body>
+
+<button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+
+<h1>⚽ FcWeb</h1>
+<div id="coins" class="info-line"></div>
+<div id="xp" class="info-line"></div>
+<div id="stats" class="info-line"></div>
+
+<div class="tabs">
+<div class="tab active" onclick="showSection('accueil')">🏠 Accueil</div>
+<div class="tab" onclick="showSection('equipe')">👥 Équipe</div>
+<div class="tab" onclick="showSection('competition')">⚔️ Compétition</div>
+<div class="tab" onclick="showSection('marche')">🏪 Marché</div>
+<div class="tab" onclick="showSection('defis')">🎯 Défis</div>
+<div class="tab" onclick="showSection('realisations')">🏅 Réalisations</div>
+</div>
+
+<div id="accueil" class="section active">
+<h2>Bienvenue !</h2>
+<div id="formationDiv" class="info-line">
+<label>Formation : </label>
+<select id="formation" onchange="majUI()">
+<option value="433">4-3-3</option>
+<option value="442">4-4-2</option>
+<option value="352">3-5-2</option>
+</select>
+</div>
+
+<div id="menu" class="info-line">
+<button onclick="afficherCatalogue()">📖 Catalogue</button>
+<button onclick="acheterPack('standard')">🎁 Standard (200)</button>
+<button onclick="acheterPack('premium')">💎 Premium (500)</button>
+<button onclick="acheterPack('legende')">🏆 Légende (1000)</button>
+<button onclick="afficherRegles()">📖 Règles</button>
+<button onclick="resetSauvegarde()">🗑️ Reset</button>
+</div>
+
+<h3>Quêtes</h3>
+<div id="quetes" class="info-line"></div>
+
+<h3>📊 Derniers matchs</h3>
+<div id="historique"></div>
+</div>
+
+<div id="equipe" class="section">
+<h2>Mon Équipe</h2>
+<button onclick="demarrerEchange()">🔄 Échanger 3 joueurs</button>
+<button onclick="annulerEchange()" id="annulerBtn" style="display:none">❌ Annuler échange</button>
+<button onclick="renouvellerContrats()">💼 Contrats (100)</button>
+<div id="equipeList" class="team"></div>
+</div>
+
+<div id="competition" class="section">
+<h2>⚔️ Compétitions</h2>
+<button onclick="lancerTournoi()">⚔️ Match simple</button>
+<button onclick="lancerChampionnat()" id="champBtn">🏆 Championnat (5 matchs)</button>
+<div id="champProgress"></div>
+</div>
+
+<div id="marche" class="section">
+<h2>🏪 Marché</h2>
+<h3>Vos joueurs</h3>
+<div id="marcheVenteList" class="team"></div>
+<h3>Joueurs disponibles</h3>
+<div id="timerMarche"></div>
+<div id="marcheAchatList" class="team"></div>
+</div>
+
+<div id="defis" class="section">
+<h2>🎯 Défis</h2>
+<div id="defisList"></div>
+</div>
+
+<div id="realisations" class="section">
+<h2>🏅 Réalisations</h2>
+<div id="realisationsList"></div>
+</div>
+
+<div id="catalogueModal" class="modal">
+<div class="modal-inner">
+<h2>📖 Catalogue</h2>
+<select id="catalogueFilter" onchange="filtrerCatalogue()">
+<option value="all">Toutes</option>
+<option value="bronze">Bronze</option>
+<option value="silver">Silver</option>
+<option value="gold">Gold</option>
+<option value="legend">Légende</option>
+<option value="mythic">Mythique</option>
+</select>
+<div id="catalogueList" class="team"></div>
+<button onclick="fermerCatalogue()">❌ Fermer</button>
+</div>
+</div>
+
+<div id="packAnim" class="pack-animation">
+<h2>🎉 Ouverture...</h2>
+<div id="packCards" class="team"></div>
+<button onclick="fermerPack()">Fermer</button>
+</div>
+
+<div id="reglesModal" class="modal">
+<div class="modal-inner">
+<h2>📜 Règles</h2>
+<ul>
+<li>🎁 Ouvre des packs pour obtenir des joueurs</li>
+<li>⚔️ Joue des matchs et tournois</li>
+<li>🏆 Championnat : 5 matchs avec récompenses</li>
+<li>💰 Vends sur le marché</li>
+<li>⭐ Les joueurs gagnent XP et stats</li>
+<li>💼 Renouvelle les contrats (100 coins)</li>
+<li>📊 La forme affecte les performances</li>
+<li>🔄 Échange 3 joueurs contre 1 meilleur</li>
+<li>🎯 Complète les défis quotidiens</li>
+<li>🏅 Débloque des réalisations</li>
+</ul>
+<button onclick="fermerRegles()">✅ OK</button>
+</div>
+</div>
+
+<div id="playerDetailModal" class="modal">
+<div class="modal-inner">
+<div id="playerDetailContent"></div>
+<button onclick="fermerPlayerDetail()">❌ Fermer</button>
+</div>
+</div>
+
+<script>
+// BASE DE DONNÉES 
+const joueursBase=[
+  /* ============================ mythic ============================ */
+{ nom:"Cristiano Ronaldo", position:"ST", note:99, rarete:"mythic", img:"https://cdn3.futbin.com/content/fifa26/img/players/20801.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=5531848a81ebdef1c7ac248652c01d7e" },
+  { nom:"Lionel Messi", position:"RW", note:99, rarete:"mythic", img:"https://cdn3.futbin.com/content/fifa26/img/players/158023.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=bcf73299aba212531942a99b5e47ce7e" },
+    /* ============================ legend ============================ */
+  { nom:"Pelé", position:"ST", note:95, rarete:"legend" , img:"https://cdn3.futbin.com/content/fifa26/img/players/237067.png?fm=png&ixlib=java-2.1.0&verzion=3&w=162&s=d25962690c37a24ba3f40e79e171a264" },  
+  { nom:"Ronaldo", position:"ST", note:94, rarete:"legend" , img: "https://cdn3.futbin.com/content/fifa26/img/players/37576.png?fm=png&ixlib=java-2.1.0&verzion=3&w=162&s=bdf5f92c4d606685fb57300b8f14147f" },
+  { nom:"Zidane", position:"CAM", note:94, rarete:"legend" , img: "https://cdn3.futbin.com/content/fifa26/img/players/1397.png?fm=png&ixlib=java-2.1.0&verzion=3&w=162&s=7f431f951f189210f46393297cad7fb8" },
+  { nom:"Gullit", position:"CM", note:91, rarete:"legend" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/214100.png?fm=png&ixlib=java-2.1.0&verzion=3&w=162&s=29d968ba83af607a3e51a0b410a07a06" },
+  { nom:"O. Dembélé", position:"RW", note:90, rarete:"gold" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/231443.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=c8c538b60934760418d3028f62379d26" },
+  { nom:"E. Haaland", position:"ST", note:89, rarete:"gold" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/239085.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=e617f2ec4ed6163e30dc0ab21fe5b586" },
+  { nom:"V. van Dijk", position:"CB", note:90, rarete:"gold" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/203376.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=2b9ae4559efb08e77d2bc18b1af3e77d" },
+  { nom:"G. Donnarumma", position:"GK", note:91, rarete:"gold" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/230621.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=58067b445281eca125835f2aaf5cdb9d" },
+  { nom:"Raphinha", position:"LW", note:89, rarete:"gold" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/233419.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=f76660878ef40dabefb44c5c30cde82c" },
+  { nom:"Pedri", position:"CM", note:91, rarete:"gold" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/251854.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=6334d825faadf7ba8f482cd3d6a6b304" },
+  { nom:"B. Saka", position:"RW", note:90, rarete:"gold" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/246669.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=f82ee27eabd85381dacecf358af6038a" },
+  { nom:"C. Palmer", position:"CAM", note:90, rarete:"gold" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/257534.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=d2b72696872749b243674b0e47ec5848" },
+  { nom:"O. Marmoush", position:"ST", note:85, rarete:"silver" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/256675.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=9506206d6a3beae40d2df22701a6b7a5" },
+  { nom:"B. Barcola", position:"LW", note:88, rarete:"gold" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/264652.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=5405fffe12c50e7a064ca40664ea0079" },
+  { nom:"M. Greenwood", position:"RM", note:86, rarete:"gold" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/246147.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=a7389c7009ccbc1cec5e9b3f6886689e" },
+  { nom:"K.Mbappé", position:"ST", note:88, rarete:"gold" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/231747.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=b4e5e7f6befbe7fcc72ccfb1fe8e9984" },
+  { nom:"J. Gvardiol", position:"CB", note:87, rarete:"gold" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/251517.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=a582d8d5dd7041b1dff3cc053ed83138" },
+  { nom:"Rafael Leão", position:"LW", note:85, rarete:"silver" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/241721.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=81bcde25d82d0bccf78a827ff2cfa4ad" },
+  { nom:"A. Tchouaméni", position:"CDM", note:87, rarete:"gold" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/241637.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=9884c320a4d05ad4075612470c82e721" },
+  { nom:"Éder Militão", position:"CB", note:87, rarete:"gold" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/240130.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=34fb031599e2691f39ac2b6a6fa7871e" },
+  { nom:"A. Davies", position:"LB", note:87, rarete:"gold" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/234396.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=45a65802ee5a335e460159a8fc15833c" },
+  { nom:"D. Dumfries", position:"RB", note:84, rarete:"silver" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/233096.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=1c7a5bd9ea17993d3b36b8f0cbe08cc7" },
+  { nom:"B. Pavard", position:"CB", note:84, rarete:"silver" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/226851.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=0e7837ee23fbe75b115a5f2a3f6c058b" },
+  { nom:"G. Rulli", position:"GK", note:82, rarete:"silver" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/215316.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=9f62882b4fabb3f0f77c5f8c51378b4f" },
+  { nom:"N. Aguerd", position:"CB", note:82, rarete:"silver" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/244749.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=2a28feeffffe1469f2a0f80b347b3aaf" },
+  { nom:"Fermín", position:"CAM", note:80, rarete:"bronze" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/277179.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=9c8f6b2a3aeec323e485f3223cfc4ced" },
+  { nom:"Andreï Santos", position:"CM", note:80, rarete:"bronze" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/273018.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=73679842c519703ef1ea9ee082448936" },
+  { nom:"Igor Paixão", position:"LM", note:81, rarete:"bronze" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/271400.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=c39cc083079ea7d452e1050f4b07c99f" },
+  { nom:"W. Zaïre-Emery", position:"CM", note:80, rarete:"bronze" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/270673.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=7b4c5c6e6e5ba205a2352c10dd4ba8bc" },
+  /* ============================ prime ============================ */
+  { nom:"Vinicius Jr.", position:"LW", note:93, rarete:"prime", img:"https://cdn3.futbin.com/content/fifa24/img/players/p50570442.png?fm=png&ixlib=java-2.1.0&w=224&s=b967fa4f7d9179baf08de7844af41e74" },
+  { nom:"", position:"", note:89, rarete:"prime", img:"" },
+  { nom:"Kylian Mbappé", position:"ST", note:94, rarete:"prime", img:"https://cdn3.futbin.com/content/fifa22/img/players/p151226691.png?fm=png&ixlib=java-2.1.0&w=172&s=0c8eaf6c65b0dfcb5a69a13babb11c28" },
+  /* ============================ DONNÉES DE BASE ============================ */
+  { nom:"Mohamed Salah", position:"RW", note:91, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/209331.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=3d34d3524d5b06729e0ef234efb3f7bf" },
+  { nom:"Thibaut Courtois", position:"GK", note:89, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/192119.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=72dcff45e9abc16c91c697dac148d51e" },
+  { nom:"Florian Wirtz", position:"CAM", note:89, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/256630.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=13e5258895c13ccd407af0f5a23489ac" },
+  { nom:"Vinícius Jr.", position:"LW", note:89, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/238794.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=94d0b9f156631874ab71d4188fad6eb0" },
+  { nom:"Federico Valverde", position:"CM", note:89, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/239053.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=151e382bedeea810e516217ee1ee5811" },
+  { nom:"Vitinha", position:"CM", note:89, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/255253.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=118e6f8a3215e7b060d8b1ebed0b5708" },
+  { nom:"Harry Kane", position:"ST", note:89, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/202126.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=52d9c3a825b081d84e3f3285d281d854" },
+  { nom:"Alisson", position:"GK", note:89, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/212831.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=2f42502ecb9386a156384ae3ac8ad0ae" },
+  { nom:"Lamine Yamal", position:"RM", note:89, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/277643.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=31f160080807862edeec76838bb33475" },
+  { nom:"Joshua Kimmich", position:"CDM", note:89, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/212622.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=6940275b895daeb677a843913971652b" },
+  { nom:"Achraf Hakimi", position:"RB", note:89, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/235212.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=f3c5f8eb0195a3fc5fe42f7e98afc0b6" },
+
+{ nom:"Khvicha Kvaratskhelia", position:"LW", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/247635.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=83e4a201be070649d359906f71428b0b" },
+{ nom:"Alessandro Bastoni", position:"CB", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/237383.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=c2add97036fb31c3699e3e755ecbd499" },
+{ nom:"Serhou Guirassy", position:"ST", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/215441.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=e30ec12eb6f3fe4596caf0adc3338128" },
+{ nom:"Frenkie de Jong", position:"CM", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/228702.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=f0cad4dda8fe554c1e7789f1ade64edb" },
+{ nom:"Moisés Caicedo", position:"CDM", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/256079.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=4d2761a215deda4a3a86264fe8a7bc89" },
+{ nom:"Declan Rice", position:"CDM", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/234378.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=b79ea64cc5a08be2c16fa99a608b6248" },
+{ nom:"Marcos Marquinhos", position:"CB", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/207865.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=a77c3a5f89fa6df350b019fb3d73ef65" },
+{ nom:"Yann Sommer", position:"GK", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/177683.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=a8b084faa61a09b84054fc7627a9657a" },
+{ nom:"Jules Koundé", position:"RB", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/241486.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=8449e4387e55a6f45ac7f10f8995dfb6" },
+{ nom:"Bruno Fernandes", position:"CAM", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/212198.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=76376aea32c21b755d570c2b109bd923" },
+{ nom:"William Saliba", position:"CB", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/243715.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=2b86a3b67670479a86bbce537598ae52" },
+{ nom:"Julián Alvarez", position:"ST", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/246191.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=0777ce0ab901cd4a7f948c1aa9fe8e25" },
+{ nom:"Jonathan Tah", position:"CB", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/213331.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=0ab85e53be1b3b483b3ceac22de39a48" },
+{ nom:"Alexis Mac Allister", position:"CM", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/239837.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=f44ec83cca2ee2d5add1cf42cf9b7148" },
+{ nom:"Mike Maignan", position:"GK", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/215698.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=031091f6cae17fa72e4262dd1d3bd176" },
+{ nom:"Martin Ødegaard", position:"CM", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/222665.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=5331f2723d300386aaad532ac7ba52ff" },
+{ nom:"David Raya", position:"GK", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/220901.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=4baffc3a7425c37979a0bdc994f37be4" },
+{ nom:"Viktor Gyökeres", position:"ST", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/241651.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=2414b973e60db4a45cf371cad76312a0" },
+{ nom:"Nicolò Barella", position:"CM", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/224232.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=74af2c27c4f3f21f3f015f99fd109551" },
+{ nom:"Victor Osimhen", position:"ST", note:87, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/232293.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=55ce64be56475af0164e479e98c3159e" },
+{ nom:"Nuno Mendes", position:"LB", note:86, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/252145.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=b50950dce83dc4203569040f31f8eb17" },
+{ nom:"Antonio Rüdiger", position:"CB", note:86, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/205452.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=12170b2a5711fe722f764829cda3573f" },
+{ nom:"Michael Olise", position:"RM", note:86, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/247827.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=9e3bbba5cc3e7b168864ff310b21bdb6" },
+{ nom:"Trent Alexander-Arnold", position:"RB", note:86, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/231281.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=c53b4878d540b9f61d81a927a717725b" },
+{ nom:"Rúben Dias", position:"CB", note:86, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/239818.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=a9c6e3874e97cbd9e2bab11331871ba1" },
+{ nom:"Paulo Dybala", position:"CAM", note:86, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa25/img/players/211110.png?fm=png&ixlib=java-2.1.0&verzion=2&w=162&s=0a086047852e12b10111682e007f8ec9" },
+
+{ nom:"Désiré Doué", position:"RW", note:85, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/271421.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=8a7c2684759657d7cbfbe6bf1360e6c4" },
+{ nom:"Ederson Santana de Moraes", position:"GK", note:85, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/210257.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=02e931b98896bf7d2c2dd20f279f1aee" },
+{ nom:"Federico Dimarco", position:"LB", note:85, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/226268.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=8dded4ebe1f447e1ae10585c62cd91f7" },
+{ nom:"João Pedro Neves", position:"CM", note:85, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/272834.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=df4cf2264fd197ee99f8144b15d7937f" },
+{ nom:"Marcus Thuram", position:"ST", note:85, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/228093.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=0bb7dce43007e2e164168e54c4e40729" },
+{ nom:"David De Gea", position:"GK", note:85, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/193080.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=01805eb1d865de9b36257d9bc046cadb" },
+{ nom:"Fabián Ruiz", position:"CM", note:85, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/226271.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=1f501f1317e4133dcf926b550f184899" },
+{ nom:"Manuel Locatelli", position:"CDM", note:84, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/222077.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=b7a24da8149caa2657b767ce4f5c42fb" },
+{ nom:"Romelu Lukaku", position:"ST", note:84, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/192505.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=d016b4650f3568512c23eaf9a2587aa9" },
+{ nom:"Cody Gakpo", position:"LM", note:84, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/242516.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=4b6f3bf4d7563ee769bd2abfcc261db6" },
+{ nom:"Giorgi Mamardashvili", position:"GK", note:84, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/262621.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=694bb1447ad11dda0e646632dc64a81a" },
+{ nom:"Xavi Simons", position:"CAM", note:84, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/245367.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=5db4abf2328072b783cb0d94b25bc7dd" },
+{ nom:"James Maddison", position:"CM", note:84, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/220697.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=17ce73af13897f6c645e0e0168c23b82" },
+
+{ nom:"Hugo Ekitiké", position:"ST", note:83, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/257289.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=d18cb17ee20beabf7da5d1536c493c1f" },
+{ nom:"Dominik Szoboszlai", position:"CAM", note:83, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/236772.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=0db0b18e9996994c0882b057544dfc63" },
+{ nom:"Jeremie Frimpong", position:"RB", note:83, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/253149.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=4161986c3011b774f02c888fca6458c2" },
+{ nom:"Nikola Milenković", position:"CB", note:83, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/238095.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=ca7e9df5343e73c1501f3f6f5a4cdb79" },
+{ nom:"Benjamin White", position:"RB", note:83, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/231936.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=23aeb9c68a75a20ddd085bff82fe748b" },
+{ nom:"Nathan Aké", position:"CB", note:83, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/208920.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=c24ed6194ad73453e738fdcd9f233e94" },
+{ nom:"Piero Hincapié", position:"CB", note:83, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/256197.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=555ac4c1b667f135dc7ea60368f0339e" },
+{ nom:"Leandro Trossard", position:"LW", note:83, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/207421.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=6de04cca2b94a4711c3db6b8cad005b8" },
+{ nom:"Anthony Gordon", position:"LW", note:83, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/242964.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=2c69b3ae183ca98390712db6a53e29ff" },
+{ nom:"Dejan Kulusevski", position:"CM", note:83, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/247394.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=dd8a180edf5b90c1d041dd193a8ae411" },
+{ nom:"Kingsley Coman", position:"LM", note:83, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/213345.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=ce436eee0342c472a39a7f84ad5d96ad" },
+{ nom:"Sadio Mané", position:"LM", note:83, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/208722.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=bc618e045b9cbdff917122d9b7febcca" },
+
+{ nom:"Rayan Cherki", position:"CAM", note:82, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/251570.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=2ad4ce60f04a6d388951067c1ac89667" },
+{ nom:"Houssem Aouar", position:"CM", note:79, rarete:"bronze", img:"https://cdn3.futbin.com/content/fifa26/img/players/234906.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=6a3568b808dafa35e593be2664e2c82a" },
+{ nom:"Yannick Carrasco", position:"LM", note:80, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/208418.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=e6eb693f39c4551b449d26014dc48785" },
+
+{ nom:"Pedro Neto", position:"RW", note:80, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/238616.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=41287ca23743a81d8de20690efe0b4db" },
+{ nom:"Marc Cucurella", position:"LB", note:83, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/239231.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=510626033a1fcf24065c734bb6341914" },
+{ nom:"Ryan Gravenberch", position:"CM", note:84, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/246104.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=da4c5cf8cf9662d4e72bc052d1c8cc05" },
+
+// AJOUTE TES AUTRES JOUEURS ICI
+];
+
+let data={coins:1000,xp:0,niveau:1,equipe:[],stats:{matchs:0,victoires:0},quetes:{ouverture:0,tournoi:0,vente:0},historique:[],championnat:{actif:false,matchsJoues:0,victoires:0},defis:[],realisations:[],theme:'dark'};
+let modeEchange={actif:false,selectionnes:[]};
+const prixMarche={bronze:50,silver:150,gold:950,legend:1000,mythic:1250};
+const defisBase=[{id:'pack3',nom:'Ouvrir 3 packs',type:'ouverture',cible:3,recompense:200},{id:'match5',nom:'Gagner 5 matchs',type:'victoire',cible:5,recompense:500},{id:'vente5',nom:'Vendre 5 joueurs',type:'vente',cible:5,recompense:300},{id:'equipe85',nom:'Note équipe 85+',type:'moyenne',cible:85,recompense:400}];
+const realisationsBase=[{id:'r1',nom:'Premier pas',desc:'Jouer 1 match',type:'matchs',cible:1},{id:'r2',nom:'Débutant',desc:'Gagner 10 matchs',type:'victoires',cible:10},{id:'r3',nom:'Champion',desc:'Gagner 50 matchs',type:'victoires',cible:50},{id:'r4',nom:'Collectionneur',desc:'10 joueurs',type:'equipe',cible:10},{id:'r5',nom:'Riche',desc:'Avoir 5000 coins',type:'coins',cible:5000}];
+window.marketState={cartes:[],derniereMaj:0,tempsRestant:300,intervalId:null};
+
+function chargerSauvegarde(){try{const raw=localStorage.getItem("ut_save_v2");if(raw){const saved=JSON.parse(raw);data=Object.assign(data,saved);}}catch(e){}}
+function sauvegarder(){try{localStorage.setItem("ut_save_v2",JSON.stringify(data));}catch(e){}}
+function resetSauvegarde(){if(confirm("Supprimer la sauvegarde ?")){localStorage.clear();location.reload();}}
+function toggleTheme(){data.theme=data.theme==='dark'?'light':'dark';document.body.className=data.theme==='light'?'light-mode':'';document.querySelector('.theme-toggle').textContent=data.theme==='dark'?'🌙':'☀️';sauvegarder();}
+function showSection(nom){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(nom).classList.add('active');event.target.classList.add('active');if(nom==='equipe')afficherEquipe();if(nom==='marche')afficherMarche();if(nom==='defis')afficherDefis();if(nom==='realisations')afficherRealisations();}
+function majUI(){document.getElementById("coins").textContent=`💰 Coins : ${data.coins}`;document.getElementById("xp").textContent=`⭐ XP : ${data.xp} | Niveau ${data.niveau}`;document.getElementById("stats").textContent=`📊 Matchs : ${data.stats.matchs} | Victoires : ${data.stats.victoires}`;afficherQuetes();afficherHistorique();verifierRealisations();}
+function afficherQuetes(){document.getElementById("quetes").innerHTML=`🎁 Packs : ${data.quetes.ouverture}/3 · ⚔️ Tournois : ${data.quetes.tournoi}/2 · 💰 Ventes : ${data.quetes.vente}/2`;}
+function afficherHistorique(){const div=document.getElementById("historique");if(!div)return;div.innerHTML='';(data.historique||[]).slice(-5).reverse().forEach(h=>{const d=document.createElement('div');d.className='match-result';d.textContent=h;div.appendChild(d);});}
+function bonusFormation(position,formation){if(formation==="433")return["ST","LW","RW"].includes(position)?2:0;if(formation==="442")return["ST","CAM","CM"].includes(position)?1:0;if(formation==="352")return["ST","CM","CDM"].includes(position)?1:0;return 0;}
+function afficherEquipe(){const div=document.getElementById("equipeList");div.innerHTML="";const formation=document.getElementById("formation").value;data.equipe.forEach((j,idx)=>{const bonus=bonusFormation(j.position,formation);const forme=j.forme||100;const formeColor=forme>70?'#4CAF50':forme>40?'#FF9800':'#f44336';const estSelectionne=modeEchange.actif&&modeEchange.selectionnes.includes(idx);const c=document.createElement("div");c.className=`card ${j.rarete} possede`+(estSelectionne?' selected':'');c.style.border=estSelectionne?'3px solid #ffb300':'';c.onclick=()=>{if(modeEchange.actif){toggleSelectionEchange(idx);}else{afficherPlayerDetail(j);}};c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note+bonus}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div><div class="xp">XP: ${j.xp||0}/50</div><div class="stats">⚽${j.buts||0} 🎯${j.passes||0}</div><div class="contract" style="color:${(j.contrats||10)<=0?'#f44336':'#4CAF50'}">📋 ${j.contrats||10}</div><div class="forme" style="color:${formeColor}">📊 ${forme}%</div>${!modeEchange.actif?`<div style="position:absolute;left:6px;bottom:28px;width:100%;display:flex;justify-content:center;"><button class="small-btn" onclick="event.stopPropagation();vendreJoueur(${idx})">💰 Vendre</button></div>`:''}`;div.appendChild(c);});if(data.equipe.length>0){const moyenne=(data.equipe.reduce((s,j)=>s+j.note,0)/data.equipe.length).toFixed(1);const moyEl=document.createElement("h3");moyEl.textContent=`⚽ Moyenne : ${moyenne}`;div.appendChild(moyEl);}}function afficherPlayerDetail(j){const modal=document.getElementById("playerDetailModal");const content=document.getElementById("playerDetailContent");content.innerHTML=`<h2>${j.nom}</h2><p><strong>Position:</strong> ${j.position} | <strong>Note:</strong> ${j.note}</p><p><strong>Rareté:</strong> ${j.rarete}</p><p><strong>XP:</strong> ${j.xp||0}/50</p><p><strong>Matchs joués:</strong> ${j.matchs||0}</p><p><strong>Buts:</strong> ${j.buts||0}</p><p><strong>Passes:</strong> ${j.passes||0}</p><p><strong>Contrats:</strong> ${j.contrats||10}</p><p><strong>Forme:</strong> ${j.forme||100}%</p>`;modal.style.display='flex';}
+function fermerPlayerDetail(){document.getElementById("playerDetailModal").style.display='none';}
+function ajouterJoueur(joueur){const existe=data.equipe.some(j=>j.nom===joueur.nom);if(existe){data.coins+=100;alert(`💰 Doublon : ${joueur.nom} → +100 coins`);}else{const clone=Object.assign({},joueur);clone.xp=0;clone.buts=0;clone.passes=0;clone.matchs=0;clone.contrats=10;clone.forme=100;data.equipe.push(clone);}sauvegarder();majUI();}
+function gagnerXP(joueur,montant){joueur.xp=(joueur.xp||0)+montant;if(joueur.xp>=50){joueur.note++;joueur.xp=0;alert(`${joueur.nom} +1 note !`);}}
+function afficherCatalogue(){document.getElementById("catalogueModal").style.display="flex";filtrerCatalogue();}
+function fermerCatalogue(){document.getElementById("catalogueModal").style.display="none";}
+function filtrerCatalogue(){const valeur=document.getElementById("catalogueFilter").value;const list=document.getElementById("catalogueList");list.innerHTML="";joueursBase.filter(j=>valeur==="all"||j.rarete===valeur).forEach(j=>{const c=document.createElement("div");c.className=`card ${j.rarete}`+(data.equipe.some(p=>p.nom===j.nom)?" possede":" locked");c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div>`;list.appendChild(c);});}
+function acheterPack(type){let prix=200,nb=3;if(type==="premium"){prix=500;nb=5;}if(type==="legende"){prix=1000;nb=7;}if(data.coins<prix){alert("Pas assez de coins !");return;}data.coins-=prix;data.quetes.ouverture++;majUI();sauvegarder();const probabilites={bronze:0.4,silver:0.25,gold:0.18,legend:0.1,mythic:0.07};const gains=[];for(let i=0;i<nb;i++){const rand=Math.random();let rarete="bronze";if(rand<probabilites.mythic)rarete="mythic";else if(rand<probabilites.mythic+probabilites.legend)rarete="legend";else if(rand<probabilites.mythic+probabilites.legend+probabilites.gold)rarete="gold";else if(rand<probabilites.mythic+probabilites.legend+probabilites.gold+probabilites.silver)rarete="silver";const pool=joueursBase.filter(j=>j.rarete===rarete);if(pool.length>0){const joueur=pool[Math.floor(Math.random()*pool.length)];ajouterJoueur(joueur);gains.push(joueur);}}afficherPackAnimation(gains);}
+function afficherPackAnimation(gains){const anim=document.getElementById("packAnim");const cards=document.getElementById("packCards");cards.innerHTML="";anim.style.display="flex";gains.forEach((j,idx)=>{setTimeout(()=>{const c=document.createElement("div");c.className=`card pack-card ${j.rarete} possede`;c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div>`;cards.appendChild(c);},idx*500);});}
+function fermerPack(){document.getElementById("packAnim").style.display="none";afficherEquipe();}
+function lancerTournoi(){if(data.equipe.length===0){alert("Pas de joueurs !");return;}data.stats.matchs++;data.quetes.tournoi++;const scoreIA=Math.floor(Math.random()*100)+60;const moyenne=Math.floor(data.equipe.reduce((s,j)=>(s+j.note*(j.forme||100)/100),0)/data.equipe.length);const scoreJ=moyenne;if(scoreJ>scoreIA){data.stats.victoires++;data.coins+=300;data.historique.push(`🏆 Victoire ${scoreJ}-${scoreIA}`);alert("🏆 Victoire ! +300 coins");data.equipe.forEach(j=>{gagnerXP(j,10);j.matchs=(j.matchs||0)+1;j.buts=(j.buts||0)+Math.floor(Math.random()*3);j.passes=(j.passes||0)+Math.floor(Math.random()*2);j.contrats=(j.contrats||10)-1;j.forme=Math.min(100,(j.forme||100)+5);});}else{data.coins+=50;data.historique.push(`❌ Défaite ${scoreJ}-${scoreIA}`);alert("Défaite... +50 coins");data.equipe.forEach(j=>{gagnerXP(j,5);j.matchs=(j.matchs||0)+1;j.contrats=(j.contrats||10)-1;j.forme=Math.max(0,(j.forme||100)-5);});}sauvegarder();majUI();afficherEquipe();}
+function lancerChampionnat(){if(data.equipe.length===0){alert("Pas de joueurs !");return;}if(!data.championnat.actif){data.championnat={actif:true,matchsJoues:0,victoires:0};document.getElementById("champBtn").disabled=true;}data.championnat.matchsJoues++;data.stats.matchs++;const scoreIA=Math.floor(Math.random()*100)+60;const moyenne=Math.floor(data.equipe.reduce((s,j)=>(s+j.note*(j.forme||100)/100),0)/data.equipe.length);const scoreJ=moyenne;if(scoreJ>scoreIA){data.championnat.victoires++;data.stats.victoires++;data.historique.push(`🏆 Championnat ${data.championnat.matchsJoues}/5 : Victoire`);}else{data.historique.push(`❌ Championnat ${data.championnat.matchsJoues}/5 : Défaite`);}data.equipe.forEach(j=>{j.matchs=(j.matchs||0)+1;j.contrats=(j.contrats||10)-1;j.forme=scoreJ>scoreIA?Math.min(100,(j.forme||100)+3):Math.max(0,(j.forme||100)-3);});if(data.championnat.matchsJoues>=5){const recompense=data.championnat.victoires*200;data.coins+=recompense;alert(`🏆 Championnat terminé !\n${data.championnat.victoires}/5 victoires\n+${recompense} coins`);data.championnat={actif:false,matchsJoues:0,victoires:0};document.getElementById("champBtn").disabled=false;}else{document.getElementById("champProgress").innerHTML=`<h3>Championnat : ${data.championnat.matchsJoues}/5 matchs | ${data.championnat.victoires} victoires</h3>`;}sauvegarder();majUI();afficherEquipe();}
+function echangerJoueurs(){if(data.equipe.length<3){alert("Il faut 3 joueurs minimum !");return;}const selectionnes=data.equipe.slice(0,3);const raretes=['bronze','silver','gold','legend','mythic'];const rareteMax=Math.max(...selectionnes.map(j=>raretes.indexOf(j.rarete)));const nouvelleRarete=raretes[Math.min(rareteMax+1,raretes.length-1)];const pool=joueursBase.filter(j=>j.rarete===nouvelleRarete&&!data.equipe.some(e=>e.nom===j.nom));if(pool.length===0){alert("Pas de joueur disponible !");return;}const nouveau=pool[Math.floor(Math.random()*pool.length)];data.equipe=data.equipe.slice(3);ajouterJoueur(nouveau);alert(`🔄 Échange réussi !\nNouveau joueur : ${nouveau.nom} (${nouveau.rarete})`);afficherEquipe();}
+function renouvellerContrats(){const besoin=data.equipe.filter(j=>(j.contrats||10)<5).length;const cout=besoin*100;if(cout===0){alert("Aucun contrat à renouveler !");return;}if(data.coins<cout){alert(`Pas assez de coins ! (${cout} nécessaires)`);return;}data.coins-=cout;data.equipe.forEach(j=>{if((j.contrats||10)<5)j.contrats=10;});alert(`💼 ${besoin} contrats renouvelés pour ${cout} coins`);sauvegarder();majUI();afficherEquipe();}
+function vendreJoueur(idx){const joueur=data.equipe[idx];const coeff={bronze:0.25,silver:0.25,gold:0.25,legend:0.3,mythic:0.3};const prix=Math.floor((prixMarche[joueur.rarete]||(joueur.note*10))*coeff[joueur.rarete]);if(!confirm(`Vendre ${joueur.nom} pour ${prix} coins ?`))return;data.coins+=prix;data.equipe.splice(idx,1);data.quetes.vente++;sauvegarder();majUI();afficherEquipe();}
+function afficherMarche(){const venteDiv=document.getElementById("marcheVenteList");venteDiv.innerHTML="";data.equipe.forEach((j,idx)=>{const prix=Math.floor(j.note*10);const c=document.createElement("div");c.className=`card ${j.rarete} possede`;c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div><div style="position:absolute;left:6px;bottom:28px;width:100%;display:flex;justify-content:center;"><button class="small-btn" onclick="vendreJoueur(${idx})">💰 ${prix}</button></div>`;venteDiv.appendChild(c);});genererMarche();}
+function genererMarche(){const now=Date.now();const elapsed=Math.floor((now-(window.marketState.derniereMaj||0))/1000);if(!window.marketState.cartes||window.marketState.cartes.length===0||elapsed>=300){const dispo=joueursBase.filter(j=>!data.equipe.some(p=>p.nom===j.nom));window.marketState.cartes=[];for(let i=0;i<5&&dispo.length>0;i++){const idx=Math.floor(Math.random()*dispo.length);window.marketState.cartes.push(dispo.splice(idx,1)[0]);}window.marketState.derniereMaj=now;window.marketState.tempsRestant=300;}else{window.marketState.tempsRestant=Math.max(300-elapsed,0);}const achatDiv=document.getElementById("marcheAchatList");achatDiv.innerHTML="";window.marketState.cartes.forEach(j=>{const prix=prixMarche[j.rarete]||100;const c=document.createElement("div");c.
+className=`card ${j.rarete}`;c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div><div style="position:absolute;left:6px;bottom:28px;width:100%;display:flex;justify-content:center;"><button class="small-btn" onclick="acheterJoueurMarche('${j.nom}',${prix})">🛒 ${prix}</button></div>`;achatDiv.appendChild(c);});document.getElementById("timerMarche").textContent=formatTemps(window.marketState.tempsRestant);if(window.marketState.intervalId){clearInterval(window.marketState.intervalId);}window.marketState.intervalId=setInterval(()=>{window.marketState.tempsRestant=Math.max((window.marketState.tempsRestant||0)-1,0);document.getElementById("timerMarche").textContent=formatTemps(window.marketState.tempsRestant);if(window.marketState.tempsRestant<=0){window.marketState.cartes=[];window.marketState.derniereMaj=Date.now();afficherMarche();}},1000);}
+function formatTemps(sec){const m=Math.floor(sec/60);const s=sec%60;return`⏳ Renouvellement dans ${m}:${String(s).padStart(2,"0")}`;}
+function acheterJoueurMarche(nom,prix){if(data.coins<prix){alert("Pas assez de coins !");return;}const joueur=joueursBase.find(j=>j.nom===nom);if(!joueur){alert("Erreur : joueur introuvable");return;}ajouterJoueur(joueur);data.coins-=prix;window.marketState.cartes=window.marketState.cartes.filter(c=>c.nom!==nom);sauvegarder();majUI();afficherMarche();}
+function verifierContrats(){const sansContrat=data.equipe.filter(j=>(j.contrats||10)<=0);return sansContrat.length===0;}
+function lancerTournoi(){if(data.equipe.length===0){alert("Pas de joueurs !");return;}if(!verifierContrats()){alert("⚠️ Certains joueurs n'ont plus de contrats !\nRenouvelle les contrats avant de jouer.");return;}data.stats.matchs++;data.quetes.tournoi++;const scoreIA=Math.floor(Math.random()*100)+60;const moyenne=Math.floor(data.equipe.reduce((s,j)=>(s+j.note*(j.forme||100)/100),0)/data.equipe.length);const scoreJ=moyenne;if(scoreJ>scoreIA){data.stats.victoires++;data.coins+=300;data.historique.push(`🏆 Victoire ${scoreJ}-${scoreIA}`);alert("🏆 Victoire ! +300 coins");data.equipe.forEach(j=>{gagnerXP(j,10);j.matchs=(j.matchs||0)+1;j.buts=(j.buts||0)+Math.floor(Math.random()*3);j.passes=(j.passes||0)+Math.floor(Math.random()*2);j.contrats=(j.contrats||10)-1;j.forme=Math.min(100,(j.forme||100)+5);});}else{data.coins+=50;data.historique.push(`❌ Défaite ${scoreJ}-${scoreIA}`);alert("Défaite... +50 coins");data.equipe.forEach(j=>{gagnerXP(j,5);j.matchs=(j.matchs||0)+1;j.contrats=(j.contrats||10)-1;j.forme=Math.max(0,(j.forme||100)-5);});}sauvegarder();majUI();afficherEquipe();}
+function lancerChampionnat(){if(data.equipe.length===0){alert("Pas de joueurs !");return;}if(!verifierContrats()){alert("⚠️ Certains joueurs n'ont plus de contrats !\nRenouvelle les contrats avant de jouer.");return;}if(!data.championnat.actif){data.championnat={actif:true,matchsJoues:0,victoires:0};document.getElementById("champBtn").disabled=true;}data.championnat.matchsJoues++;data.stats.matchs++;const scoreIA=Math.floor(Math.random()*100)+60;const moyenne=Math.floor(data.equipe.reduce((s,j)=>(s+j.note*(j.forme||100)/100),0)/data.equipe.length);const scoreJ=moyenne;if(scoreJ>scoreIA){data.championnat.victoires++;data.stats.victoires++;data.historique.push(`🏆 Championnat ${data.championnat.matchsJoues}/5 : Victoire`);}else{data.historique.push(`❌ Championnat ${data.championnat.matchsJoues}/5 : Défaite`);}data.equipe.forEach(j=>{j.matchs=(j.matchs||0)+1;j.contrats=(j.contrats||10)-1;j.forme=scoreJ>scoreIA?Math.min(100,(j.forme||100)+3):Math.max(0,(j.forme||100)-3);});if(data.championnat.matchsJoues>=5){const recompense=data.championnat.victoires*200;data.coins+=recompense;alert(`🏆 Championnat terminé !\n${data.championnat.victoires}/5 victoires\n+${recompense} coins`);data.championnat={actif:false,matchsJoues:0,victoires:0};document.getElementById("champBtn").disabled=false;}else{document.getElementById("champProgress").innerHTML=`<h3>Championnat : ${data.championnat.matchsJoues}/5 matchs | ${data.championnat.victoires} victoires</h3>`;}sauvegarder();majUI();afficherEquipe();}
+function demarrerEchange(){if(data.equipe.length<3){alert("Il faut au moins 3 joueurs !");return;}modeEchange={actif:true,selectionnes:[]};document.getElementById("annulerBtn").style.display="inline-block";alert("🔄 Mode échange activé !\nClique sur 3 joueurs à échanger.");afficherEquipe();}
+function annulerEchange(){modeEchange={actif:false,selectionnes:[]};document.getElementById("annulerBtn").style.display="none";afficherEquipe();}
+function toggleSelectionEchange(idx){if(!modeEchange.actif)return;const pos=modeEchange.selectionnes.indexOf(idx);if(pos>-1){modeEchange.selectionnes.splice(pos,1);}else{if(modeEchange.selectionnes.length>=3){alert("Tu as déjà sélectionné 3 joueurs !");return;}modeEchange.selectionnes.push(idx);}afficherEquipe();if(modeEchange.selectionnes.length===3){confirmerEchange();}}
+function confirmerEchange(){if(!confirm(`Échanger ces 3 joueurs contre 1 joueur de meilleure rareté ?`))return;const selectionnes=modeEchange.selectionnes.map(i=>data.equipe[i]);const raretes=['bronze','silver','gold','legend','mythic'];const rareteMax=Math.max(...selectionnes.map(j=>raretes.indexOf(j.rarete)));const nouvelleRarete=raretes[Math.min(rareteMax+1,raretes.length-1)];const pool=joueursBase.filter(j=>j.rarete===nouvelleRarete&&!data.equipe.some(e=>e.nom===j.nom));if(pool.length===0){alert("Pas de joueur disponible pour cet échange !");annulerEchange();return;}const nouveau=pool[Math.floor(Math.random()*pool.length)];modeEchange.selectionnes.sort((a,b)=>b-a).forEach(i=>data.equipe.splice(i,1));ajouterJoueur(nouveau);alert(`🔄 Échange réussi !\nNouveau joueur : ${nouveau.nom} (${nouveau.rarete})`);annulerEchange();}
+function renouvellerContrats(){const besoin=data.equipe.filter(j=>(j.contrats||10)<=0);const cout=besoin.length*100;if(cout===0){alert("Aucun contrat à renouveler !");return;}if(data.coins<cout){alert(`Pas assez de coins ! (${cout} nécessaires)`);return;}data.coins-=cout;data.equipe.forEach(j=>{if((j.contrats||10)<=0)j.contrats=10;});alert(`💼 ${besoin.length} contrats renouvelés pour ${cout} coins`);sauvegarder();majUI();afficherEquipe();}
+function vendreJoueur(idx){const joueur=data.equipe[idx];const coeff={bronze:0.25,silver:0.25,gold:0.25,legend:0.3,mythic:0.3};const prix=Math.floor((prixMarche[joueur.rarete]||(joueur.note*10))*coeff[joueur.rarete]);if(!confirm(`Vendre ${joueur.nom} pour ${prix} coins ?`))return;data.coins+=prix;data.equipe.splice(idx,1);data.quetes.vente++;sauvegarder();majUI();afficherEquipe();}
+function afficherMarche(){const venteDiv=document.getElementById("marcheVenteList");venteDiv.innerHTML="";data.equipe.forEach((j,idx)=>{const prix=Math.floor(j.note*10);const c=document.createElement("div");c.className=`card ${j.rarete} possede`;c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div><div style="position:absolute;left:6px;bottom:28px;width:100%;display:flex;justify-content:center;"><button class="small-btn" onclick="vendreJoueur(${idx})">💰 ${prix}</button></div>`;venteDiv.appendChild(c);});genererMarche();}
+function genererMarche(){const now=Date.now();const elapsed=Math.floor((now-(window.marketState.derniereMaj||0))/1000);if(!window.marketState.cartes||window.marketState.cartes.length===0||elapsed>=300){const dispo=joueursBase.filter(j=>!data.equipe.some(p=>p.nom===j.nom));window.marketState.cartes=[];for(let i=0;i<5&&dispo.length>0;i++){const idx=Math.floor(Math.random()*dispo.length);window.marketState.cartes.push(dispo.splice(idx,1)[0]);}window.marketState.derniereMaj=now;window.marketState.tempsRestant=300;}else{window.marketState.tempsRestant=Math.max(300-elapsed,0);}const achatDiv=document.getElementById("marcheAchatList");achatDiv.innerHTML="";window.marketState.cartes.forEach(j=>{const prix=prixMarche[j.rarete]||100;const c=document.createElement("div");c.className=`card ${j.rarete}`;c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div><div style="position:absolute;left:6px;bottom:28px;width:100%;display:flex;justify-content:center;"><button class="small-btn" onclick="acheterJoueurMarche('${j.nom}',${prix})">🛒 ${prix}</button></div>`;achatDiv.appendChild(c);});document.getElementById("timerMarche").textContent=formatTemps(window.marketState.tempsRestant);if(window.marketState.intervalId){clearInterval(window.marketState.intervalId);}window.marketState.intervalId=setInterval(()=>{window.marketState.tempsRestant=Math.max((window.marketState.tempsRestant||0)-1,0);document.getElementById("timerMarche").textContent=formatTemps(window.marketState.tempsRestant);if(window.marketState.tempsRestant<=0){window.marketState.cartes=[];window.marketState.derniereMaj=Date.now();afficherMarche();}},1000);}function afficherRealisations(){const div=document.getElementById("realisationsList");div.innerHTML="";if(!data.realisations||data.realisations.length===0){data.realisations=realisationsBase.map(r=>({...r,debloquee:false}));}data.realisations.forEach(r=>{let valeur=0;if(r.type==='matchs')valeur=data.stats.matchs;if(r.type==='victoires')valeur=data.stats.victoires;if(r.type==='equipe')valeur=data.equipe.length;if(r.type==='coins')valeur=data.coins;if(valeur>=r.cible&&!r.debloquee){r.debloquee=true;alert(`🏅 Réalisation débloquée !\n${r.nom}\n${r.desc}`);}const badge=document.createElement('div');badge.className='badge'+(r.debloquee?'':' locked');badge.textContent=`${r.debloquee?'✅':''} ${r.nom} - ${r.desc}`;div.appendChild(badge);});sauvegarder();}
+function verifierRealisations(){if(!data.realisations||data.realisations.length===0){data.realisations=realisationsBase.map(r=>({...r,debloquee:false}));}data.realisations.forEach(r=>{let valeur=0;if(r.type==='matchs')valeur=data.stats.matchs;if(r.type==='victoires')valeur=data.stats.victoires;if(r.type==='equipe')valeur=data.equipe.length;if(r.type==='coins')valeur=data.coins;if(valeur>=r.cible&&!r.debloquee){r.debloquee=true;alert(`🏅 Réalisation débloquée !\n${r.nom}\n${r.desc}`);}});sauvegarder();}
+function afficherRegles(){document.getElementById("reglesModal").style.display="flex";}
+function fermerRegles(){document.getElementById("reglesModal").style.display="none";}
+
+chargerSauvegarde();
+if(data.theme==='light'){document.body.className='light-mode';document.querySelector('.theme-toggle').textContent='☀️';}
+majUI();
+afficherRegles();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js');
+}
+</script>
+
+</body>
+</html>
