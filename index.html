@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<link rel="manifest" href="manifest.json">
 <title>FcWeb </title>
 <style>
 :root{--bg:#111;--bg2:#1a1a1a;--txt:#fff;--txt2:#aaa;--acc:#ffb300;--acc2:#e09b00}
@@ -49,6 +48,16 @@ button:disabled{opacity:0.5;cursor:not-allowed}
 .section{display:none}
 .section.active{display:block}
 </style>
+
+<style>
+@media (max-width: 600px) {
+  body { zoom:1; }
+  button { font-size: 1.1rem !important; padding: 10px 14px !important; }
+  .top-info, .menu, .boutons { display:flex; flex-wrap:wrap; justify-content:center; }
+  h1 { font-size: 1.5rem !important; }
+}
+</style>
+
 </head>
 <body>
 
@@ -351,12 +360,5 @@ if(data.theme==='light'){document.body.className='light-mode';document.querySele
 majUI();
 afficherRegles();
 </script>
-
-<script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js');
-}
-</script>
-
 </body>
 </html>
