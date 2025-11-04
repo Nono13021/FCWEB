@@ -330,8 +330,8 @@ function filtrerCatalogue(){const valeur=document.getElementById("catalogueFilte
 function acheterPack(type){let prix=200,nb=3;if(type==="premium"){prix=500;nb=5;}if(type==="legende"){prix=1000;nb=7;}if(data.coins<prix){alert("Pas assez de coins !");return;}data.coins-=prix;data.quetes.ouverture++;majUI();sauvegarder();const probabilites={bronze:0.4,silver:0.25,gold:0.18,legend:0.1,mythic:0.07};const gains=[];for(let i=0;i<nb;i++){const rand=Math.random();let rarete="bronze";if(rand<probabilites.mythic)rarete="mythic";else if(rand<probabilites.mythic+probabilites.legend)rarete="legend";else if(rand<probabilites.mythic+probabilites.legend+probabilites.gold)rarete="gold";else if(rand<probabilites.mythic+probabilites.legend+probabilites.gold+probabilites.silver)rarete="silver";const pool=joueursBase.filter(j=>j.rarete===rarete);if(pool.length>0){const joueur=pool[Math.floor(Math.random()*pool.length)];ajouterJoueur(joueur);gains.push(joueur);}}afficherPackAnimation(gains);}
 function afficherPackAnimation(gains){const anim=document.getElementById("packAnim");const cards=document.getElementById("packCards");cards.innerHTML="";anim.style.display="flex";gains.forEach((j,idx)=>{setTimeout(()=>{const c=document.createElement("div");c.className=`card pack-card ${j.rarete} possede`;c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div>`;cards.appendChild(c);},idx*500);});}
 function fermerPack(){document.getElementById("packAnim").style.display="none";afficherEquipe();}
-function lancerTournoi(){if(data.equipe.length===0){alert("Pas de joueurs !");return;}data.stats.matchs++;data.quetes.tournoi++;const scoreIA=Math.floor(Math.random()*100)+60;const moyenne=Math.floor(data.equipe.reduce((s,j)=>(s+j.note*(j.forme||100)/100),0)/data.equipe.length);const scoreJ=moyenne;if(scoreJ>scoreIA){data.stats.victoires++;data.coins+=300;data.historique.push(`🏆 Victoire ${scoreJ}-${scoreIA}`);alert("🏆 Victoire ! +300 coins");data.equipe.forEach(j=>{gagnerXP(j,10);j.matchs=(j.matchs||0)+1;j.buts=(j.buts||0)+Math.floor(Math.random()*3);j.passes=(j.passes||0)+Math.floor(Math.random()*2);j.contrats=(j.contrats||10)-1;j.forme=Math.min(100,(j.forme||100)+5);});}else{data.coins+=50;data.historique.push(`❌ Défaite ${scoreJ}-${scoreIA}`);alert("Défaite... +50 coins");data.equipe.forEach(j=>{gagnerXP(j,5);j.matchs=(j.matchs||0)+1;j.contrats=(j.contrats||10)-1;j.forme=Math.max(0,(j.forme||100)-5);});}sauvegarder();majUI();afficherEquipe();}
-function lancerChampionnat(){if(data.equipe.length===0){alert("Pas de joueurs !");return;}if(!data.championnat.actif){data.championnat={actif:true,matchsJoues:0,victoires:0};document.getElementById("champBtn").disabled=true;}data.championnat.matchsJoues++;data.stats.matchs++;const scoreIA=Math.floor(Math.random()*100)+60;const moyenne=Math.floor(data.equipe.reduce((s,j)=>(s+j.note*(j.forme||100)/100),0)/data.equipe.length);const scoreJ=moyenne;if(scoreJ>scoreIA){data.championnat.victoires++;data.stats.victoires++;data.historique.push(`🏆 Championnat ${data.championnat.matchsJoues}/5 : Victoire`);}else{data.historique.push(`❌ Championnat ${data.championnat.matchsJoues}/5 : Défaite`);}data.equipe.forEach(j=>{j.matchs=(j.matchs||0)+1;j.contrats=(j.contrats||10)-1;j.forme=scoreJ>scoreIA?Math.min(100,(j.forme||100)+3):Math.max(0,(j.forme||100)-3);});if(data.championnat.matchsJoues>=5){const recompense=data.championnat.victoires*200;data.coins+=recompense;alert(`🏆 Championnat terminé !\n${data.championnat.victoires}/5 victoires\n+${recompense} coins`);data.championnat={actif:false,matchsJoues:0,victoires:0};document.getElementById("champBtn").disabled=false;}else{document.getElementById("champProgress").innerHTML=`<h3>Championnat : ${data.championnat.matchsJoues}/5 matchs | ${data.championnat.victoires} victoires</h3>`;}sauvegarder();majUI();afficherEquipe();}
+function lancerTournoi(){if(data.equipe.length===0){showPopup('win', 300);}
+function lancerChampionnat(){if(data.equipe.length===0){showPopup('win', 300);}
 function echangerJoueurs(){if(data.equipe.length<3){alert("Il faut 3 joueurs minimum !");return;}const selectionnes=data.equipe.slice(0,3);const raretes=['bronze','silver','gold','legend','mythic'];const rareteMax=Math.max(...selectionnes.map(j=>raretes.indexOf(j.rarete)));const nouvelleRarete=raretes[Math.min(rareteMax+1,raretes.length-1)];const pool=joueursBase.filter(j=>j.rarete===nouvelleRarete&&!data.equipe.some(e=>e.nom===j.nom));if(pool.length===0){alert("Pas de joueur disponible !");return;}const nouveau=pool[Math.floor(Math.random()*pool.length)];data.equipe=data.equipe.slice(3);ajouterJoueur(nouveau);alert(`🔄 Échange réussi !\nNouveau joueur : ${nouveau.nom} (${nouveau.rarete})`);afficherEquipe();}
 function renouvellerContrats(){const besoin=data.equipe.filter(j=>(j.contrats||10)<5).length;const cout=besoin*100;if(cout===0){alert("Aucun contrat à renouveler !");return;}if(data.coins<cout){alert(`Pas assez de coins ! (${cout} nécessaires)`);return;}data.coins-=cout;data.equipe.forEach(j=>{if((j.contrats||10)<5)j.contrats=10;});alert(`💼 ${besoin} contrats renouvelés pour ${cout} coins`);sauvegarder();majUI();afficherEquipe();}
 function vendreJoueur(idx){const joueur=data.equipe[idx];const coeff={bronze:0.25,silver:0.25,gold:0.25,legend:0.3,mythic:0.3};const prix=Math.floor((prixMarche[joueur.rarete]||(joueur.note*10))*coeff[joueur.rarete]);if(!confirm(`Vendre ${joueur.nom} pour ${prix} coins ?`))return;data.coins+=prix;data.equipe.splice(idx,1);data.quetes.vente++;sauvegarder();majUI();afficherEquipe();}
@@ -341,8 +341,8 @@ className=`card ${j.rarete}`;c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.
 function formatTemps(sec){const m=Math.floor(sec/60);const s=sec%60;return`⏳ Renouvellement dans ${m}:${String(s).padStart(2,"0")}`;}
 function acheterJoueurMarche(nom,prix){if(data.coins<prix){alert("Pas assez de coins !");return;}const joueur=joueursBase.find(j=>j.nom===nom);if(!joueur){alert("Erreur : joueur introuvable");return;}ajouterJoueur(joueur);data.coins-=prix;window.marketState.cartes=window.marketState.cartes.filter(c=>c.nom!==nom);sauvegarder();majUI();afficherMarche();}
 function verifierContrats(){const sansContrat=data.equipe.filter(j=>(j.contrats||10)<=0);return sansContrat.length===0;}
-function lancerTournoi(){if(data.equipe.length===0){alert("Pas de joueurs !");return;}if(!verifierContrats()){alert("⚠️ Certains joueurs n'ont plus de contrats !\nRenouvelle les contrats avant de jouer.");return;}data.stats.matchs++;data.quetes.tournoi++;const scoreIA=Math.floor(Math.random()*100)+60;const moyenne=Math.floor(data.equipe.reduce((s,j)=>(s+j.note*(j.forme||100)/100),0)/data.equipe.length);const scoreJ=moyenne;if(scoreJ>scoreIA){data.stats.victoires++;data.coins+=300;data.historique.push(`🏆 Victoire ${scoreJ}-${scoreIA}`);alert("🏆 Victoire ! +300 coins");data.equipe.forEach(j=>{gagnerXP(j,10);j.matchs=(j.matchs||0)+1;j.buts=(j.buts||0)+Math.floor(Math.random()*3);j.passes=(j.passes||0)+Math.floor(Math.random()*2);j.contrats=(j.contrats||10)-1;j.forme=Math.min(100,(j.forme||100)+5);});}else{data.coins+=50;data.historique.push(`❌ Défaite ${scoreJ}-${scoreIA}`);alert("Défaite... +50 coins");data.equipe.forEach(j=>{gagnerXP(j,5);j.matchs=(j.matchs||0)+1;j.contrats=(j.contrats||10)-1;j.forme=Math.max(0,(j.forme||100)-5);});}sauvegarder();majUI();afficherEquipe();}
-function lancerChampionnat(){if(data.equipe.length===0){alert("Pas de joueurs !");return;}if(!verifierContrats()){alert("⚠️ Certains joueurs n'ont plus de contrats !\nRenouvelle les contrats avant de jouer.");return;}if(!data.championnat.actif){data.championnat={actif:true,matchsJoues:0,victoires:0};document.getElementById("champBtn").disabled=true;}data.championnat.matchsJoues++;data.stats.matchs++;const scoreIA=Math.floor(Math.random()*100)+60;const moyenne=Math.floor(data.equipe.reduce((s,j)=>(s+j.note*(j.forme||100)/100),0)/data.equipe.length);const scoreJ=moyenne;if(scoreJ>scoreIA){data.championnat.victoires++;data.stats.victoires++;data.historique.push(`🏆 Championnat ${data.championnat.matchsJoues}/5 : Victoire`);}else{data.historique.push(`❌ Championnat ${data.championnat.matchsJoues}/5 : Défaite`);}data.equipe.forEach(j=>{j.matchs=(j.matchs||0)+1;j.contrats=(j.contrats||10)-1;j.forme=scoreJ>scoreIA?Math.min(100,(j.forme||100)+3):Math.max(0,(j.forme||100)-3);});if(data.championnat.matchsJoues>=5){const recompense=data.championnat.victoires*200;data.coins+=recompense;alert(`🏆 Championnat terminé !\n${data.championnat.victoires}/5 victoires\n+${recompense} coins`);data.championnat={actif:false,matchsJoues:0,victoires:0};document.getElementById("champBtn").disabled=false;}else{document.getElementById("champProgress").innerHTML=`<h3>Championnat : ${data.championnat.matchsJoues}/5 matchs | ${data.championnat.victoires} victoires</h3>`;}sauvegarder();majUI();afficherEquipe();}
+function lancerTournoi(){if(data.equipe.length===0){showPopup('win', 300);}
+function lancerChampionnat(){if(data.equipe.length===0){showPopup('win', 300);}
 function demarrerEchange(){if(data.equipe.length<3){alert("Il faut au moins 3 joueurs !");return;}modeEchange={actif:true,selectionnes:[]};document.getElementById("annulerBtn").style.display="inline-block";alert("🔄 Mode échange activé !\nClique sur 3 joueurs à échanger.");afficherEquipe();}
 function annulerEchange(){modeEchange={actif:false,selectionnes:[]};document.getElementById("annulerBtn").style.display="none";afficherEquipe();}
 function toggleSelectionEchange(idx){if(!modeEchange.actif)return;const pos=modeEchange.selectionnes.indexOf(idx);if(pos>-1){modeEchange.selectionnes.splice(pos,1);}else{if(modeEchange.selectionnes.length>=3){alert("Tu as déjà sélectionné 3 joueurs !");return;}modeEchange.selectionnes.push(idx);}afficherEquipe();if(modeEchange.selectionnes.length===3){confirmerEchange();}}
@@ -360,5 +360,95 @@ if(data.theme==='light'){document.body.className='light-mode';document.querySele
 majUI();
 afficherRegles();
 </script>
+
+<!-- RESULT POPUP + CONFETTI -->
+<div id="resultPopup" class="popup" aria-hidden="true">
+  <div class="popup-content" id="popupContent">
+    <h2 id="resultTitle"></h2>
+    <p id="resultCoins"></p>
+    <div id="resultDetails" style="margin-top:8px;font-size:0.9rem;opacity:0.9"></div>
+    <div style="margin-top:12px;display:flex;gap:10px;justify-content:center">
+      <button id="replayBtn" class="small-btn" onclick="replayMatch()">🔁 Rejouer</button>
+      <button class="small-btn" onclick="closePopup()">✅ OK</button>
+    </div>
+  </div>
+  <div id="confettiContainer" aria-hidden="true"></div>
+</div>
+
+<style>
+.popup{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);display:none;justify-content:center;align-items:center;z-index:99999;backdrop-filter:blur(4px)}
+.popup-content{background:linear-gradient(180deg,#0f1720,#111);border:3px solid #f1b300;border-radius:16px;padding:18px 26px;width:86%;max-width:420px;text-align:center;color:#fff;box-shadow:0 12px 30px rgba(0,0,0,.6);transform:translateY(0);animation:pop .32s ease-out}
+@keyframes pop{0%{transform:scale(.82);opacity:0}100%{transform:scale(1);opacity:1}}
+#resultTitle{font-size:1.6rem;margin:6px 0}
+#resultCoins{font-weight:700;font-size:1.2rem;margin:6px 0;color:#ffd166}
+#confettiContainer{pointer-events:none;position:absolute;inset:0;overflow:hidden;border-radius:16px}
+.confetti{position:absolute;width:10px;height:18px;opacity:0.95;transform-origin:center;animation:fall 1500ms linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(360deg);opacity:0}}
+.small-btn{padding:8px 12px;font-size:14px;border-radius:8px;background:#f1b300;border:none;color:#000;cursor:pointer;font-weight:bold}
+</style>
+
+<script>
+function showPopup(result, coins, details){
+  const popup = document.getElementById('resultPopup');
+  const title = document.getElementById('resultTitle');
+  const coinsEl = document.getElementById('resultCoins');
+  const detailsEl = document.getElementById('resultDetails');
+  title.textContent = result === 'win' ? '🏆 Victoire !' : '❌ Défaite...';
+  coinsEl.textContent = (coins ? ('+'+coins+' coins') : '');
+  detailsEl.textContent = details || '';
+  popup.style.display = 'flex';
+  if(result === 'win'){
+    launchConfetti();
+  } else {
+    // small shake for defeat
+    const content = document.querySelector('.popup-content');
+    content.style.animation = 'pop .2s ease-out';
+  }
+  // for accessibility
+  popup.setAttribute('aria-hidden','false');
+}
+
+function closePopup(){
+  const popup = document.getElementById('resultPopup');
+  popup.style.display = 'none';
+  popup.setAttribute('aria-hidden','true');
+  // clear confetti
+  const c = document.getElementById('confettiContainer');
+  c.innerHTML = '';
+}
+
+function replayMatch(){
+  // Try to call lancerTournoi if exists, otherwise reload page
+  if(typeof lancerTournoi === 'function'){
+    closePopup();
+    setTimeout(()=>lancerTournoi(),200);
+  } else {
+    location.reload();
+  }
+}
+
+function launchConfetti(){
+  const container = document.getElementById('confettiContainer');
+  container.innerHTML='';
+  const colors=['#ffd166','#ffb703','#fb8500','#ff006e','#7b2cbf','#00c2cb'];
+  for(let i=0;i<36;i++){
+    const el = document.createElement('div');
+    el.className='confetti';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    el.style.left = Math.random()*100+'%';
+    el.style.top = (-10 - Math.random()*20) + 'vh';
+    el.style.width = (6 + Math.random()*10) + 'px';
+    el.style.height = (10 + Math.random()*18) + 'px';
+    el.style.transform = 'rotate('+ (Math.random()*360) +'deg)';
+    el.style.animationDelay = (Math.random()*300) + 'ms';
+    el.style.opacity = 0.95;
+    container.appendChild(el);
+  }
+  // remove after animation
+  setTimeout(()=>{ container.innerHTML=''; }, 2200);
+}
+</script>
+<!-- END RESULT POPUP -->
+
 </body>
 </html>
