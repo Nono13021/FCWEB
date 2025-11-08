@@ -47,8 +47,71 @@ button:disabled{opacity:0.5;cursor:not-allowed}
 .tab.active{background:var(--acc);color:#000}
 .section{display:none}
 .section.active{display:block}
+.carte.champions {
+  border: 3px solid #0033ff; /* un bleu Champions League */
+  position: relative;
+}
+/* AJOUTER ces règles CSS (par exemple juste après .badge.locked dans votre <style>) */
+.realisations-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  align-items: start;
+  margin: 12px 0 40px;
+}
+.real-card{
+  background: var(--bg2);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  text-align:left;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  min-height:60px;
+  border-left:4px solid transparent;
+}
+.real-card.locked{opacity:0.5}
+.real-card.completed{border-left-color:#4CAF50;background: linear-gradient(90deg, rgba(76,175,80,0.06), transparent);}
+.real-card h4{margin:0;font-size:14px}
+.real-desc{font-size:12px;color:var(--txt2);margin:0}
+.real-meta{display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.real-badge{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;font-weight:700;font-size:12px;
+  background:#666;color:#fff;
+}
+.real-badge.ok{background:#2ecc71;color:#00210a}
+
+/* 🔥 Nouvelle carte Champions League */
+.champions {
+    background: linear-gradient(135deg, #0028ff, #6a00ff);
+    border: 3px solid #00e0ff;
+    box-shadow: 0 0 12px #00e0ff;
+    position: relative;
+    color: #fff;
+}
+
+.champions::before {
+    content: "★ Champions";
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    color: #00e0ff;
+    font-weight: bold;
+    text-shadow: 0 0 6px rgba(0,224,255,0.6);
+}
+
+/* Styles pour la liste de la passe */
+.passe-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap:10px; margin-top:12px; }
+.passe-card{ background:var(--bg2); padding:10px; border-radius:10px; text-align:left; box-shadow:0 4px 12px rgba(0,0,0,0.35) }
+.passe-card .lvl{ font-weight:700; margin-bottom:6px; color:var(--acc) }
+
 </style>
 </head>
+<body>
+
 <div id="resultPopup" class="popup">
   <div class="popup-content">
     <span id="resultTitle"></span>
@@ -77,7 +140,7 @@ button:disabled{opacity:0.5;cursor:not-allowed}
   text-align:center;
   color:white;
   animation: pop .3s ease-out;
-  font-size:1.3rem;
+  font-size:1.1rem;
 }
 .popup button {
   margin-top:15px;
@@ -90,15 +153,6 @@ button:disabled{opacity:0.5;cursor:not-allowed}
 }
 @keyframes pop {0%{transform:scale(0.7)}100%{transform:scale(1)}}
 </style>
-...
-</script>
-
-<footer id="version-info" ...>📌 Version : 1.1.0</footer>
-
-</body>
-</html>
-
-<body>
 
 <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
 
@@ -112,7 +166,7 @@ button:disabled{opacity:0.5;cursor:not-allowed}
 <div class="tab" onclick="showSection('equipe')">👥 Équipe</div>
 <div class="tab" onclick="showSection('competition')">⚔️ Compétition</div>
 <div class="tab" onclick="showSection('marche')">🏪 Marché</div>
-<div class="tab" onclick="showSection('defis')">🎯 Défis</div>
+<div class="tab" onclick="showSection('passe')">🎫 Passe de Saison</div>
 <div class="tab" onclick="showSection('realisations')">🏅 Réalisations</div>
 </div>
 
@@ -147,7 +201,7 @@ button:disabled{opacity:0.5;cursor:not-allowed}
 <h2>Mon Équipe</h2>
 <button onclick="demarrerEchange()">🔄 Échanger 3 joueurs</button>
 <button onclick="annulerEchange()" id="annulerBtn" style="display:none">❌ Annuler échange</button>
-<button onclick="renouvellerContrats()">💼 Contrats (100)</button>
+<button onclick="renouvellerContrats()">💼 Contrats (50)</button>
 <div id="equipeList" class="team"></div>
 </div>
 
@@ -167,14 +221,16 @@ button:disabled{opacity:0.5;cursor:not-allowed}
 <div id="marcheAchatList" class="team"></div>
 </div>
 
-<div id="defis" class="section">
-<h2>🎯 Défis</h2>
-<div id="defisList"></div>
+<div id="passe" class="section">
+  <h2>🎫 Passe de Saison</h2>
+  <p>Niveau : <span id="saisonLvl"></span> | XP : <span id="saisonXP"></span></p>
+  <div id="paliersList" class="passe-grid"></div>
 </div>
 
 <div id="realisations" class="section">
-<h2>🏅 Réalisations</h2>
-<div id="realisationsList"></div>
+  <h2>🏅 Réalisations</h2>
+  <div id="realisationsList" class="grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;text-align:left;">
+  </div>
 </div>
 
 <div id="catalogueModal" class="modal">
@@ -187,6 +243,7 @@ button:disabled{opacity:0.5;cursor:not-allowed}
 <option value="gold">Gold</option>
 <option value="legend">Légende</option>
 <option value="mythic">Mythique</option>
+<option value="champions">Champions League</option>
 </select>
 <div id="catalogueList" class="team"></div>
 <button onclick="fermerCatalogue()">❌ Fermer</button>
@@ -208,11 +265,14 @@ button:disabled{opacity:0.5;cursor:not-allowed}
 <li>🏆 Championnat : 5 matchs avec récompenses</li>
 <li>💰 Vends sur le marché</li>
 <li>⭐ Les joueurs gagnent XP et stats</li>
-<li>💼 Renouvelle les contrats (100 coins)</li>
+<li>💼 Renouvelle les contrats (50 coins)</li>
 <li>📊 La forme affecte les performances</li>
 <li>🔄 Échange 3 joueurs contre 1 meilleur</li>
 <li>🎯 Complète les défis quotidiens</li>
 <li>🏅 Débloque des réalisations</li>
+<li>Chaque joueur jouant 10 matchs gagne +1 note tous les 10 matchs</li>
+<li>Chaque compo a sa spécificité: 4-3-3 = +2 note pour les attaquants</li>
+<li>🎫 Passe : +5 XP de passe **par but marqué**</li>
 </ul>
 <button onclick="fermerRegles()">✅ OK</button>
 </div>
@@ -228,6 +288,7 @@ button:disabled{opacity:0.5;cursor:not-allowed}
 <script>
 // BASE DE DONNÉES 
 const joueursBase=[
+  
   /* ============================ mythic ============================ */
 { nom:"Cristiano Ronaldo", position:"ST", note:99, rarete:"mythic", img:"https://cdn3.futbin.com/content/fifa26/img/players/20801.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=5531848a81ebdef1c7ac248652c01d7e" },
   { nom:"Lionel Messi", position:"RW", note:99, rarete:"mythic", img:"https://cdn3.futbin.com/content/fifa26/img/players/158023.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=bcf73299aba212531942a99b5e47ce7e" },
@@ -263,7 +324,6 @@ const joueursBase=[
   { nom:"W. Zaïre-Emery", position:"CM", note:80, rarete:"bronze" ,img: "https://cdn3.futbin.com/content/fifa26/img/players/270673.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=7b4c5c6e6e5ba205a2352c10dd4ba8bc" },
   /* ============================ prime ============================ */
   { nom:"Vinicius Jr.", position:"LW", note:93, rarete:"prime", img:"https://cdn3.futbin.com/content/fifa24/img/players/p50570442.png?fm=png&ixlib=java-2.1.0&w=224&s=b967fa4f7d9179baf08de7844af41e74" },
-  { nom:"", position:"", note:89, rarete:"prime", img:"" },
   { nom:"Kylian Mbappé", position:"ST", note:94, rarete:"prime", img:"https://cdn3.futbin.com/content/fifa22/img/players/p151226691.png?fm=png&ixlib=java-2.1.0&w=172&s=0c8eaf6c65b0dfcb5a69a13babb11c28" },
   /* ============================ DONNÉES DE BASE ============================ */
   { nom:"Mohamed Salah", position:"RW", note:91, rarete:"gold", img:"https://cdn3.futbin.com/content/fifa26/img/players/209331.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=3d34d3524d5b06729e0ef234efb3f7bf" },
@@ -340,207 +400,422 @@ const joueursBase=[
 { nom:"Marc Cucurella", position:"LB", note:83, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/239231.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=510626033a1fcf24065c734bb6341914" },
 { nom:"Ryan Gravenberch", position:"CM", note:84, rarete:"silver", img:"https://cdn3.futbin.com/content/fifa26/img/players/246104.png?fm=png&ixlib=java-2.1.0&verzion=1&w=162&s=da4c5cf8cf9662d4e72bc052d1c8cc05" },
 
-// AJOUTE TES AUTRES JOUEURS ICI
+  /* Exemple Champions League (bleu-violet) */
+  { nom:"Haaland", position:"ST", note:93, rarete:"champions", img:"https://cdn3.futbin.com/content/fifa26/img/players/p84125165.png?fm=png&ixlib=java-2.1.0&verzion=1&w=485&s=7f71fde17009b7f77d2cacad5d1b00c5" },
+  { nom:"Lamine Yamal", position:"RW", note:90, rarete:"champions", img:"https://cdn3.futbin.com/content/fifa26/img/players/p50609291.png?fm=png&ixlib=java-2.1.0&verzion=1&w=485&s=24e0c94793c6f29f0fe5ba247eae22e8"},
+  { nom:"Saliba", position:"CB", note:91, rarete:"champions", img:"https://cdn3.futbin.com/content/fifa26/img/players/p50575363.png?fm=png&ixlib=java-2.1.0&verzion=1&w=252&s=5127c99173d07d712c55f6daba0cb7c3" },
+  { nom:"Eder Militao", position:"CB", note:90, rarete:"champions", img:"https://cdn3.futbin.com/content/fifa26/img/players/p67348994.png?fm=png&ixlib=java-2.1.0&verzion=1&w=252&s=80a36eca71f0c93c60247c4be5fb8aae" },
+  // TU PEUX AJOUTER D'AUTRES JOUEURS ICI
 ];
 
-let data={coins:1000,xp:0,niveau:1,equipe:[],stats:{matchs:0,victoires:0},quetes:{ouverture:0,tournoi:0,vente:0},historique:[],championnat:{actif:false,matchsJoues:0,victoires:0},defis:[],realisations:[],theme:'dark'};
+let data={coins:1000,xp:0,niveau:1,equipe:[],stats:{matchs:0,victoires:0},quetes:{ouverture:0,tournoi:0,vente:0},historique:[],championnat:{actif:false,matchsJoues:0,victoires:0},defis:[],realisations:[],theme:'dark',division:{numero:10,progression:0}};
 let modeEchange={actif:false,selectionnes:[]};
-const prixMarche={bronze:50,silver:150,gold:950,legend:1000,mythic:1250};
+const prixMarche={bronze:50,silver:150,gold:950,legend:1000,mythic:1250,champions:2500};
 const defisBase=[{id:'pack3',nom:'Ouvrir 3 packs',type:'ouverture',cible:3,recompense:200},{id:'match5',nom:'Gagner 5 matchs',type:'victoire',cible:5,recompense:500},{id:'vente5',nom:'Vendre 5 joueurs',type:'vente',cible:5,recompense:300},{id:'equipe85',nom:'Note équipe 85+',type:'moyenne',cible:85,recompense:400}];
-const realisationsBase=[{id:'r1',nom:'Premier pas',desc:'Jouer 1 match',type:'matchs',cible:1},{id:'r2',nom:'Débutant',desc:'Gagner 10 matchs',type:'victoires',cible:10},{id:'r3',nom:'Champion',desc:'Gagner 50 matchs',type:'victoires',cible:50},{id:'r4',nom:'Collectionneur',desc:'10 joueurs',type:'equipe',cible:10},{id:'r5',nom:'Riche',desc:'Avoir 5000 coins',type:'coins',cible:5000}];
+
+const realisationsBase = [
+  { id:'r1', nom:'Gagnant 1', desc:'Jouer 1 match', type:'matchs', cible:1 },
+  { id:'r2', nom:'Gagnant 2', desc:'Gagner 10 matchs', type:'victoires', cible:10 },
+  { id:'r3', nom:'Gagnant 3', desc:'Gagner 50 matchs', type:'victoires', cible:50 },
+  { id:'r4', nom:'Collectionneur 1', desc:'10 joueurs', type:'equipe', cible:10 },
+  { id:'r5', nom:'Riche 1', desc:'Avoir 1000 coins', type:'coins', cible:1000 },
+  { id:'r7', nom:'Riche 2', desc:'Avoir 2500 coins', type:'coins', cible:2500 },
+  { id:'r6', nom:'Riche 3', desc:'Avoir 5000 coins', type:'coins', cible:5000 }
+];
+
 window.marketState={cartes:[],derniereMaj:0,tempsRestant:300,intervalId:null};
 
-function chargerSauvegarde(){try{const raw=localStorage.getItem("ut_save_v2");if(raw){const saved=JSON.parse(raw);data=Object.assign(data,saved);}}catch(e){}}
-function sauvegarder(){try{localStorage.setItem("ut_save_v2",JSON.stringify(data));}catch(e){}}
+// ===== PASSE DE SAISON =====
+let saison = {
+    xp: 0,
+    niveau: 1,
+    xpNext: 100, // 100 XP par palier
+    max: 50
+};
+
+// Récompenses : on applique les paliers exacts que tu as donnés
+const recompensesPasse = Array.from({length:50}, (_,i)=>{
+  const lvl = i+1;
+  // Defaults: small XP for most
+  let r = { type:"xp", valeur:50 };
+  if(lvl>=1 && lvl<=5) r = { type:"coins", valeur:100 };
+  if(lvl===10) r = { type:"pack", valeur:"premium" };
+  if(lvl===20) r = { type:"special", valeur:"champions_player" }; // donne un joueur Champions
+  if(lvl===30) r = { type:"pack", valeur:"premium" };
+  if(lvl===50) r = { type:"pack_legend_plus", valeur:5000 }; // pack légende + coins
+  return r;
+});
+
+function gagnerXPSaison(q){
+    saison.xp += q;
+    // monter plusieurs paliers si besoin
+    while(saison.xp >= saison.xpNext && saison.niveau < saison.max){
+        saison.xp -= saison.xpNext;
+        saison.niveau++;
+        donnerRecompensePasse(saison.niveau);
+        alert(`🔥 Passe : Palier ${saison.niveau} atteint !`);
+    }
+    majPasse();
+    sauvegarder();
+}
+
+function donnerRecompensePasse(niveau){
+    const r = recompensesPasse[niveau-1];
+    if(!r) return;
+    if(r.type==="coins"){
+        data.coins += r.valeur;
+        alert(`+${r.valeur} coins reçus !`);
+    } else if(r.type==="pack"){
+        alert(`🎁 Pack ${r.valeur} ajouté ! (ouvre ton inventaire)`); // placeholder
+        // on peut simuler ajouter un pack ou créditer coins etc.
+    } else if(r.type==="special" && r.valeur==="champions_player"){
+        // sélectionne un joueur champions disponible
+        const pool = joueursBase.filter(j=>j.rarete==="champions");
+        if(pool.length>0){
+            const joueur = pool[Math.floor(Math.random()*pool.length)];
+            ajouterJoueur(joueur);
+            alert(`🏅 Tu as reçu un joueur Champions : ${joueur.nom}`);
+        } else {
+            alert("Pas de joueur Champions disponible dans la base.");
+        }
+    } else if(r.type==="pack_legend_plus"){
+        // pack légende + coins
+        data.coins += r.valeur;
+        alert(`🏆 Pack Légende + ${r.valeur} coins (simulé) !`);
+    } else if(r.type==="xp"){
+        // petit bonus XP de saison
+        saison.xp += r.valeur;
+    }
+    sauvegarder();
+}
+
+function majPasse(){
+    document.getElementById("saisonLvl").textContent = saison.niveau;
+    document.getElementById("saisonXP").textContent = `${saison.xp}/${saison.xpNext}`;
+    renderPaliers();
+}
+
+function renderPaliers(){
+    const container = document.getElementById("paliersList");
+    if(!container) return;
+    container.innerHTML = "";
+    for(let i=0;i<50;i++){
+        const lvl = i+1;
+        const r = recompensesPasse[i];
+        const card = document.createElement("div");
+        card.className = "passe-card";
+        let label = "";
+        if(r.type==="coins") label = `${r.valeur} coins`;
+        if(r.type==="pack") label = `Pack ${r.valeur}`;
+        if(r.type==="special" && r.valeur==="champions_player") label = `Joueur Champions League`;
+        if(r.type==="pack_legend_plus") label = `Pack Légende + ${r.valeur} coins`;
+        if(r.type==="xp") label = `${r.valeur} XP passe`;
+        card.innerHTML = `<div class="lvl">Palier ${lvl}</div><div>${label}</div>`;
+        if(lvl <= saison.niveau) card.style.opacity = "0.7";
+        container.appendChild(card);
+    }
+}
+
+// ================= END PASSE =================
+
+function chargerSauvegarde(){try{const raw=localStorage.getItem("ut_save_v2");if(raw){const saved=JSON.parse(raw);data=Object.assign(data,saved);if(saved.saison) saison = saved.saison;} }catch(e){}}
+function sauvegarder(){try{const save = Object.assign({}, data); save.saison = saison; localStorage.setItem("ut_save_v2",JSON.stringify(save));}catch(e){}}
 function resetSauvegarde(){if(confirm("Supprimer la sauvegarde ?")){localStorage.clear();location.reload();}}
 function toggleTheme(){data.theme=data.theme==='dark'?'light':'dark';document.body.className=data.theme==='light'?'light-mode':'';document.querySelector('.theme-toggle').textContent=data.theme==='dark'?'🌙':'☀️';sauvegarder();}
-function showSection(nom){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(nom).classList.add('active');event.target.classList.add('active');if(nom==='equipe')afficherEquipe();if(nom==='marche')afficherMarche();if(nom==='defis')afficherDefis();if(nom==='realisations')afficherRealisations();}
-function majUI(){document.getElementById("coins").textContent=`💰 Coins : ${data.coins}`;document.getElementById("xp").textContent=`⭐ XP : ${data.xp} | Niveau ${data.niveau}`;document.getElementById("stats").textContent=`📊 Matchs : ${data.stats.matchs} | Victoires : ${data.stats.victoires}`;afficherQuetes();afficherHistorique();verifierRealisations();}
+function showSection(nom){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById(nom).classList.add('active');event.target.classList.add('active');if(nom==='equipe')afficherEquipe();if(nom==='marche')afficherMarche();if(nom==='defis')afficherDefis();if(nom==='realisations')afficherRealisations();if(nom==='passe')majPasse();}
+function majUI(){document.getElementById("coins").textContent=`💰 Coins : ${data.coins}`;document.getElementById("xp").textContent=`⭐ XP : ${data.xp} | Niveau ${data.niveau}`;document.getElementById("stats").textContent=`📊 Matchs : ${data.stats.matchs} | Victoires : ${data.stats.victoires}`;afficherQuetes();afficherHistorique();verifierRealisations();majPasse();}
 function afficherQuetes(){document.getElementById("quetes").innerHTML=`🎁 Packs : ${data.quetes.ouverture}/3 · ⚔️ Tournois : ${data.quetes.tournoi}/2 · 💰 Ventes : ${data.quetes.vente}/2`;}
 function afficherHistorique(){const div=document.getElementById("historique");if(!div)return;div.innerHTML='';(data.historique||[]).slice(-5).reverse().forEach(h=>{const d=document.createElement('div');d.className='match-result';d.textContent=h;div.appendChild(d);});}
 function bonusFormation(position,formation){if(formation==="433")return["ST","LW","RW"].includes(position)?2:0;if(formation==="442")return["ST","CAM","CM"].includes(position)?1:0;if(formation==="352")return["ST","CM","CDM"].includes(position)?1:0;return 0;}
-function afficherEquipe(){const div=document.getElementById("equipeList");div.innerHTML="";const formation=document.getElementById("formation").value;data.equipe.forEach((j,idx)=>{const bonus=bonusFormation(j.position,formation);const forme=j.forme||100;const formeColor=forme>70?'#4CAF50':forme>40?'#FF9800':'#f44336';const estSelectionne=modeEchange.actif&&modeEchange.selectionnes.includes(idx);const c=document.createElement("div");c.className=`card ${j.rarete} possede`+(estSelectionne?' selected':'');c.style.border=estSelectionne?'3px solid #ffb300':'';c.onclick=()=>{if(modeEchange.actif){toggleSelectionEchange(idx);}else{afficherPlayerDetail(j);}};c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note+bonus}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div><div class="xp">XP: ${j.xp||0}/50</div><div class="stats">⚽${j.buts||0} 🎯${j.passes||0}</div><div class="contract" style="color:${(j.contrats||10)<=0?'#f44336':'#4CAF50'}">📋 ${j.contrats||10}</div><div class="forme" style="color:${formeColor}">📊 ${forme}%</div>${!modeEchange.actif?`<div style="position:absolute;left:6px;bottom:28px;width:100%;display:flex;justify-content:center;"><button class="small-btn" onclick="event.stopPropagation();vendreJoueur(${idx})">💰 Vendre</button></div>`:''}`;div.appendChild(c);});if(data.equipe.length>0){const moyenne=(data.equipe.reduce((s,j)=>s+j.note,0)/data.equipe.length).toFixed(1);const moyEl=document.createElement("h3");moyEl.textContent=`⚽ Moyenne : ${moyenne}`;div.appendChild(moyEl);}}function afficherPlayerDetail(j){const modal=document.getElementById("playerDetailModal");const content=document.getElementById("playerDetailContent");content.innerHTML=`<h2>${j.nom}</h2><p><strong>Position:</strong> ${j.position} | <strong>Note:</strong> ${j.note}</p><p><strong>Rareté:</strong> ${j.rarete}</p><p><strong>XP:</strong> ${j.xp||0}/50</p><p><strong>Matchs joués:</strong> ${j.matchs||0}</p><p><strong>Buts:</strong> ${j.buts||0}</p><p><strong>Passes:</strong> ${j.passes||0}</p><p><strong>Contrats:</strong> ${j.contrats||10}</p><p><strong>Forme:</strong> ${j.forme||100}%</p>`;modal.style.display='flex';}
+function afficherEquipe(){const div=document.getElementById("equipeList");div.innerHTML="";const formation=document.getElementById("formation").value;data.equipe.forEach((j,idx)=>{const bonus=bonusFormation(j.position,formation);const forme=j.forme||100;const formeColor=forme>70?'#4CAF50':forme>40?'#FF9800':'#f44336';const estSelectionne=modeEchange.actif&&modeEchange.selectionnes.includes(idx);const c=document.createElement("div");c.className=`card ${j.rarete} possede`+(estSelectionne?' selected':'');if(j.rarete==="champions") c.className += " champions";c.style.border=estSelectionne?'3px solid #ffb300':'';c.onclick=()=>{if(modeEchange.actif){toggleSelectionEchange(idx);}else{afficherPlayerDetail(j);}};c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note+bonus}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div><div class="xp">XP: ${j.xp||0}/50</div><div class="stats">⚽${j.buts||0} 🎯${j.passes||0}</div><div class="contract" style="color:${(j.contrats||10)<=0?'#f44336':'#4CAF50'}">📋 ${j.contrats||10}</div><div class="forme" style="color:${formeColor}">📊 ${forme}%</div>${!modeEchange.actif?`<div style="position:absolute;left:6px;bottom:28px;width:100%;display:flex;justify-content:center;"><button class="small-btn" onclick="event.stopPropagation();vendreJoueur(${idx})">💰 Vendre</button></div>`:''}`;div.appendChild(c);});if(data.equipe.length>0){const moyenne=(data.equipe.reduce((s,j)=>s+j.note,0)/data.equipe.length).toFixed(1);const moyEl=document.createElement("h3");moyEl.textContent=`⚽ Moyenne : ${moyenne}`;div.appendChild(moyEl);}}
+function afficherPlayerDetail(j){const modal=document.getElementById("playerDetailModal");const content=document.getElementById("playerDetailContent");content.innerHTML=`<h2>${j.nom}</h2><p><strong>Position:</strong> ${j.position} | <strong>Note:</strong> ${j.note}</p><p><strong>Rareté:</strong> ${j.rarete}</p><p><strong>XP:</strong> ${j.xp||0}/50</p><p><strong>Matchs joués:</strong> ${j.matchs||0}</p><p><strong>Buts:</strong> ${j.buts||0}</p><p><strong>Passes:</strong> ${j.passes||0}</p><p><strong>Contrats:</strong> ${j.contrats||10}</p><p><strong>Forme:</strong> ${j.forme||100}%</p>`;modal.style.display='flex';}
 function fermerPlayerDetail(){document.getElementById("playerDetailModal").style.display='none';}
 function ajouterJoueur(joueur){const existe=data.equipe.some(j=>j.nom===joueur.nom);if(existe){data.coins+=100;alert(`💰 Doublon : ${joueur.nom} → +100 coins`);}else{const clone=Object.assign({},joueur);clone.xp=0;clone.buts=0;clone.passes=0;clone.matchs=0;clone.contrats=10;clone.forme=100;data.equipe.push(clone);}sauvegarder();majUI();}
 function gagnerXP(joueur,montant){joueur.xp=(joueur.xp||0)+montant;if(joueur.xp>=50){joueur.note++;joueur.xp=0;alert(`${joueur.nom} +1 note !`);}}
 function afficherCatalogue(){document.getElementById("catalogueModal").style.display="flex";filtrerCatalogue();}
 function fermerCatalogue(){document.getElementById("catalogueModal").style.display="none";}
-function filtrerCatalogue(){const valeur=document.getElementById("catalogueFilter").value;const list=document.getElementById("catalogueList");list.innerHTML="";joueursBase.filter(j=>valeur==="all"||j.rarete===valeur).forEach(j=>{const c=document.createElement("div");c.className=`card ${j.rarete}`+(data.equipe.some(p=>p.nom===j.nom)?" possede":" locked");c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div>`;list.appendChild(c);});}
-function acheterPack(type){let prix=200,nb=3;if(type==="premium"){prix=500;nb=5;}if(type==="legende"){prix=1000;nb=7;}if(data.coins<prix){alert("Pas assez de coins !");return;}data.coins-=prix;data.quetes.ouverture++;majUI();sauvegarder();const probabilites={bronze:0.4,silver:0.25,gold:0.18,legend:0.1,mythic:0.07};const gains=[];for(let i=0;i<nb;i++){const rand=Math.random();let rarete="bronze";if(rand<probabilites.mythic)rarete="mythic";else if(rand<probabilites.mythic+probabilites.legend)rarete="legend";else if(rand<probabilites.mythic+probabilites.legend+probabilites.gold)rarete="gold";else if(rand<probabilites.mythic+probabilites.legend+probabilites.gold+probabilites.silver)rarete="silver";const pool=joueursBase.filter(j=>j.rarete===rarete);if(pool.length>0){const joueur=pool[Math.floor(Math.random()*pool.length)];ajouterJoueur(joueur);gains.push(joueur);}}afficherPackAnimation(gains);}
-function afficherPackAnimation(gains){const anim=document.getElementById("packAnim");const cards=document.getElementById("packCards");cards.innerHTML="";anim.style.display="flex";gains.forEach((j,idx)=>{setTimeout(()=>{const c=document.createElement("div");c.className=`card pack-card ${j.rarete} possede`;c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div>`;cards.appendChild(c);},idx*500);});}
+function filtrerCatalogue(){const valeur=document.getElementById("catalogueFilter").value;const list=document.getElementById("catalogueList");list.innerHTML="";joueursBase.filter(j=>valeur==="all"||j.rarete===valeur).forEach(j=>{const c=document.createElement("div");c.className=`card ${j.rarete}`+(data.equipe.some(p=>p.nom===j.nom)?" possede":" locked");if(j.rarete==="champions") c.className += " champions";c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div>`;list.appendChild(c);});}
+
+function acheterPack(type){
+    let prix=200,nb=3;
+    if(type==="premium"){prix=500;nb=5;}
+    if(type==="legende"){prix=1000;nb=7;}
+    if(data.coins<prix){alert("Pas assez de coins !");return;}
+    data.coins-=prix;
+    data.quetes.ouverture++;
+    majUI();sauvegarder();
+
+    // probabilités incluant champions
+    const probabilites={bronze:0.35,silver:0.25,gold:0.18,legend:0.1,mythic:0.08,champions:0.04};
+    const keys = Object.keys(probabilites);
+    const cumul = [];
+    let s=0;
+    for(const k of keys){ s+=probabilites[k]; cumul.push({key:k,threshold:s}); }
+
+    const gains=[];
+    for(let i=0;i<nb;i++){
+        const rand=Math.random();
+        let rarete="bronze";
+        for(const item of cumul){
+            if(rand < item.threshold){ rarete = item.key; break; }
+        }
+        const pool = joueursBase.filter(j=>j.rarete===rarete);
+        if(pool.length>0){
+            const joueur = pool[Math.floor(Math.random()*pool.length)];
+            ajouterJoueur(joueur);
+            gains.push(joueur);
+        }
+    }
+    afficherPackAnimation(gains);
+}
+
+function afficherPackAnimation(gains){const anim=document.getElementById("packAnim");const cards=document.getElementById("packCards");cards.innerHTML="";anim.style.display="flex";gains.forEach((j,idx)=>{setTimeout(()=>{const c=document.createElement("div");c.className=`card pack-card ${j.rarete} possede`;if(j.rarete==="champions") c.className += " champions";c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div>`;cards.appendChild(c);},idx*500);});}
 function fermerPack(){document.getElementById("packAnim").style.display="none";afficherEquipe();}
-function lancerTournoi(){if(data.equipe.length===0){alert("Pas de joueurs !");return;}data.stats.matchs++;data.quetes.tournoi++;const scoreIA=Math.floor(Math.random()*100)+60;const moyenne=Math.floor(data.equipe.reduce((s,j)=>(s+j.note*(j.forme||100)/100),0)/data.equipe.length);const scoreJ=moyenne;if(scoreJ>scoreIA){data.stats.victoires++;data.coins+=300;data.historique.push(`🏆 Victoire ${scoreJ}-${scoreIA}`);alert("🏆 Victoire ! +300 coins");data.equipe.forEach(j=>{gagnerXP(j,10);j.matchs=(j.matchs||0)+1;j.buts=(j.buts||0)+Math.floor(Math.random()*3);j.passes=(j.passes||0)+Math.floor(Math.random()*2);j.contrats=(j.contrats||10)-1;j.forme=Math.min(100,(j.forme||100)+5);});}else{data.coins+=50;data.historique.push(`❌ Défaite ${scoreJ}-${scoreIA}`);alert("Défaite... +50 coins");data.equipe.forEach(j=>{gagnerXP(j,5);j.matchs=(j.matchs||0)+1;j.contrats=(j.contrats||10)-1;j.forme=Math.max(0,(j.forme||100)-5);});}sauvegarder();majUI();afficherEquipe();}
-function lancerChampionnat(){if(data.equipe.length===0){alert("Pas de joueurs !");return;}if(!data.championnat.actif){data.championnat={actif:true,matchsJoues:0,victoires:0};document.getElementById("champBtn").disabled=true;}data.championnat.matchsJoues++;data.stats.matchs++;const scoreIA=Math.floor(Math.random()*100)+60;const moyenne=Math.floor(data.equipe.reduce((s,j)=>(s+j.note*(j.forme||100)/100),0)/data.equipe.length);const scoreJ=moyenne;if(scoreJ>scoreIA){data.championnat.victoires++;data.stats.victoires++;data.historique.push(`🏆 Championnat ${data.championnat.matchsJoues}/5 : Victoire`);}else{data.historique.push(`❌ Championnat ${data.championnat.matchsJoues}/5 : Défaite`);}data.equipe.forEach(j=>{j.matchs=(j.matchs||0)+1;j.contrats=(j.contrats||10)-1;j.forme=scoreJ>scoreIA?Math.min(100,(j.forme||100)+3):Math.max(0,(j.forme||100)-3);});if(data.championnat.matchsJoues>=5){const recompense=data.championnat.victoires*200;data.coins+=recompense;alert(`🏆 Championnat terminé !\n${data.championnat.victoires}/5 victoires\n+${recompense} coins`);data.championnat={actif:false,matchsJoues:0,victoires:0};document.getElementById("champBtn").disabled=false;}else{document.getElementById("champProgress").innerHTML=`<h3>Championnat : ${data.championnat.matchsJoues}/5 matchs | ${data.championnat.victoires} victoires</h3>`;}sauvegarder();majUI();afficherEquipe();}
-function echangerJoueurs(){if(data.equipe.length<3){alert("Il faut 3 joueurs minimum !");return;}const selectionnes=data.equipe.slice(0,3);const raretes=['bronze','silver','gold','legend','mythic'];const rareteMax=Math.max(...selectionnes.map(j=>raretes.indexOf(j.rarete)));const nouvelleRarete=raretes[Math.min(rareteMax+1,raretes.length-1)];const pool=joueursBase.filter(j=>j.rarete===nouvelleRarete&&!data.equipe.some(e=>e.nom===j.nom));if(pool.length===0){alert("Pas de joueur disponible !");return;}const nouveau=pool[Math.floor(Math.random()*pool.length)];data.equipe=data.equipe.slice(3);ajouterJoueur(nouveau);alert(`🔄 Échange réussi !\nNouveau joueur : ${nouveau.nom} (${nouveau.rarete})`);afficherEquipe();}
-function renouvellerContrats(){const besoin=data.equipe.filter(j=>(j.contrats||10)<5).length;const cout=besoin*100;if(cout===0){alert("Aucun contrat à renouveler !");return;}if(data.coins<cout){alert(`Pas assez de coins ! (${cout} nécessaires)`);return;}data.coins-=cout;data.equipe.forEach(j=>{if((j.contrats||10)<5)j.contrats=10;});alert(`💼 ${besoin} contrats renouvelés pour ${cout} coins`);sauvegarder();majUI();afficherEquipe();}
-function vendreJoueur(idx){const joueur=data.equipe[idx];const coeff={bronze:0.25,silver:0.25,gold:0.25,legend:0.3,mythic:0.3};const prix=Math.floor((prixMarche[joueur.rarete]||(joueur.note*10))*coeff[joueur.rarete]);if(!confirm(`Vendre ${joueur.nom} pour ${prix} coins ?`))return;data.coins+=prix;data.equipe.splice(idx,1);data.quetes.vente++;sauvegarder();majUI();afficherEquipe();}
-function afficherMarche(){const venteDiv=document.getElementById("marcheVenteList");venteDiv.innerHTML="";data.equipe.forEach((j,idx)=>{const prix=Math.floor(j.note*10);const c=document.createElement("div");c.className=`card ${j.rarete} possede`;c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div><div style="position:absolute;left:6px;bottom:28px;width:100%;display:flex;justify-content:center;"><button class="small-btn" onclick="vendreJoueur(${idx})">💰 ${prix}</button></div>`;venteDiv.appendChild(c);});genererMarche();}
-function genererMarche(){const now=Date.now();const elapsed=Math.floor((now-(window.marketState.derniereMaj||0))/1000);if(!window.marketState.cartes||window.marketState.cartes.length===0||elapsed>=300){const dispo=joueursBase.filter(j=>!data.equipe.some(p=>p.nom===j.nom));window.marketState.cartes=[];for(let i=0;i<5&&dispo.length>0;i++){const idx=Math.floor(Math.random()*dispo.length);window.marketState.cartes.push(dispo.splice(idx,1)[0]);}window.marketState.derniereMaj=now;window.marketState.tempsRestant=300;}else{window.marketState.tempsRestant=Math.max(300-elapsed,0);}const achatDiv=document.getElementById("marcheAchatList");achatDiv.innerHTML="";window.marketState.cartes.forEach(j=>{const prix=prixMarche[j.rarete]||100;const c=document.createElement("div");c.
-className=`card ${j.rarete}`;c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div><div style="position:absolute;left:6px;bottom:28px;width:100%;display:flex;justify-content:center;"><button class="small-btn" onclick="acheterJoueurMarche('${j.nom}',${prix})">🛒 ${prix}</button></div>`;achatDiv.appendChild(c);});document.getElementById("timerMarche").textContent=formatTemps(window.marketState.tempsRestant);if(window.marketState.intervalId){clearInterval(window.marketState.intervalId);}window.marketState.intervalId=setInterval(()=>{window.marketState.tempsRestant=Math.max((window.marketState.tempsRestant||0)-1,0);document.getElementById("timerMarche").textContent=formatTemps(window.marketState.tempsRestant);if(window.marketState.tempsRestant<=0){window.marketState.cartes=[];window.marketState.derniereMaj=Date.now();afficherMarche();}},1000);}
-function formatTemps(sec){const m=Math.floor(sec/60);const s=sec%60;return`⏳ Renouvellement dans ${m}:${String(s).padStart(2,"0")}`;}
-function acheterJoueurMarche(nom,prix){if(data.coins<prix){alert("Pas assez de coins !");return;}const joueur=joueursBase.find(j=>j.nom===nom);if(!joueur){alert("Erreur : joueur introuvable");return;}ajouterJoueur(joueur);data.coins-=prix;window.marketState.cartes=window.marketState.cartes.filter(c=>c.nom!==nom);sauvegarder();majUI();afficherMarche();}
-function verifierContrats(){const sansContrat=data.equipe.filter(j=>(j.contrats||10)<=0);return sansContrat.length===0;}
-// Génère un score entre 0 et 5 influencé par la note
-function genererScore(noteEquipe) {
-    let base = Math.max(0, Math.floor((noteEquipe - 60) / 10)); // plus la note est élevée > plus tu marques
-    return Math.max(0, Math.min(5, base + Math.floor(Math.random() * 3))); 
-}
 
-function lancerTournoi() {
-    if (data.equipe.length === 0) return alert("Pas de joueurs !");
-    if (!verifierContrats()) return alert("⚠️ Renouvelle les contrats !");
-    
-    data.stats.matchs++;
-    data.quetes.tournoi++;
+function lancerTournoi(){
+    if(data.equipe.length===0){alert("Pas de joueurs !");return;}
+    if(!verifierContrats()) return alert("⚠️ Renouvelle les contrats !");
+    data.stats.matchs++; data.quetes.tournoi++;
 
-    const noteEquipe = Math.floor(
-        data.equipe.reduce((s, j) => s + j.note * (j.forme || 100) / 100, 0) / data.equipe.length
-    );
-
+    const noteEquipe = Math.floor(data.equipe.reduce((s,j)=>s+j.note*(j.forme||100)/100,0)/data.equipe.length);
     const scoreJ = genererScore(noteEquipe);
-    const scoreIA = genererScore(70 + Math.floor(Math.random() * 20));
-
+    const scoreIA = genererScore(70 + Math.floor(Math.random()*20));
     const victoire = scoreJ > scoreIA;
-    
-data.division = {
-    numero: 10,   // On commence en Division 10
-    progression: 0 // Victoires dans la division actuelle
-};
 
-    if (victoire) {
-        data.stats.victoires++;
-        data.coins += 300;
-        data.historique.push(`🏆 Victoire ${scoreJ}-${scoreIA}`);
-    } else {
-        data.coins += 50;
-        data.historique.push(`❌ Défaite ${scoreJ}-${scoreIA}`);
-    }
+    if(victoire){ data.stats.victoires++; data.coins+=300; data.historique.push(`🏆 Victoire ${scoreJ}-${scoreIA}`); alert("🏆 Victoire ! +300 coins");}
+    else { data.coins+=50; data.historique.push(`❌ Défaite ${scoreJ}-${scoreIA}`); alert("Défaite... +50 coins"); }
 
-    data.equipe.forEach(j => {
+    // On simule distribution de buts aux joueurs de l'équipe, et on calcule totalGoals pour la passe
+    let totalGoalsAdded = 0;
+    const teamSize = data.equipe.length;
+    for(const j of data.equipe){
+        // chaque joueur marque entre 0 et  (scoreJ) buts approximativement mais limité pour être réaliste
+        const g = Math.floor(Math.random() * Math.min(3, scoreJ+1)); // 0..2 typiquement
+        j.buts = (j.buts||0) + g;
+        totalGoalsAdded += g;
+        j.passes = (j.passes||0) + Math.floor(Math.random()*Math.min(2, scoreJ+1));
         gagnerXP(j, victoire ? 10 : 5);
-        j.matchs = (j.matchs || 0) + 1;
-        j.buts = (j.buts || 0) + Math.floor(Math.random() * scoreJ);
-        j.passes = (j.passes || 0) + Math.floor(Math.random() * scoreJ);
-        j.contrats--;
-        j.forme = victoire ? Math.min(100, j.forme + 5) : Math.max(0, j.forme - 5);
-    });
+        j.matchs=(j.matchs||0)+1;
+        j.contrats = (j.contrats||10)-1;
+        j.forme = victoire ? Math.min(100,(j.forme||100)+5) : Math.max(0,(j.forme||100)-5);
+    }
 
-    sauvegarder();
-    majUI();
-    afficherEquipe();
+    // +5 XP de passe par but marqué (SEULEMENT la passe de saison)
+    if(totalGoalsAdded>0) {
+        gagnerXPSaison(totalGoalsAdded * 5);
+    }
+
+    sauvegarder(); majUI(); afficherEquipe();
 }
 
+function lancerChampionnat(){
+    if(data.equipe.length===0){alert("Pas de joueurs !");return;}
+    if(!verifierContrats()) return alert("⚠️ Renouvelle les contrats !");
+    if(!data.championnat.actif){ data.championnat={actif:true,matchsJoues:0,victoires:0}; document.getElementById("champBtn").disabled=true;}
+    data.stats.matchs++; data.championnat.matchsJoues++;
 
-//--- Championnat avec score réel ---
-function lancerChampionnat() {
-    if (data.equipe.length === 0) return alert("Pas de joueurs !");
-    if (!verifierContrats()) return alert("⚠️ Renouvelle les contrats !");
-
-    if (!data.championnat.actif) {
-        data.championnat = { actif: true, matchsJoues: 0, victoires: 0 };
-        document.getElementById("champBtn").disabled = true;
-    }
-
-    data.stats.matchs++;
-    data.championnat.matchsJoues++;
-
-    const noteEquipe = Math.floor(
-        data.equipe.reduce((s, j) => s + j.note * (j.forme || 100) / 100, 0) / data.equipe.length
-    );
-
+    const noteEquipe = Math.floor(data.equipe.reduce((s,j)=>s+j.note*(j.forme||100)/100,0)/data.equipe.length);
     const scoreJ = genererScore(noteEquipe);
-    const scoreIA = genererScore(70 + Math.floor(Math.random() * 20));
+    const scoreIA = genererScore(70 + Math.floor(Math.random()*20));
     const victoire = scoreJ > scoreIA;
-majDivision(victoire);
+    majDivision(victoire);
 
-    if (victoire) {
-        data.stats.victoires++;
-        data.championnat.victoires++;
-        data.historique.push(`🏆 Championnat ${data.championnat.matchsJoues}/5 : ${scoreJ}-${scoreIA}`);
-    } else {
-        data.historique.push(`❌ Championnat ${data.championnat.matchsJoues}/5 : ${scoreJ}-${scoreIA}`);
+    if(victoire){ data.stats.victoires++; data.championnat.victoires++; data.historique.push(`🏆 Championnat ${data.championnat.matchsJoues}/5 : ${scoreJ}-${scoreIA}`); }
+    else { data.historique.push(`❌ Championnat ${data.championnat.matchsJoues}/5 : ${scoreJ}-${scoreIA}`); }
+
+    // Distribution de buts + passe XP
+    let totalGoalsAdded = 0;
+    for(const j of data.equipe){
+        const g = Math.floor(Math.random() * Math.min(3, scoreJ+1));
+        j.buts = (j.buts||0) + g;
+        totalGoalsAdded += g;
+        j.passes = (j.passes||0) + Math.floor(Math.random()*Math.min(2, scoreJ+1));
+        j.matchs=(j.matchs||0)+1;
+        j.contrats=(j.contrats||10)-1;
+        j.forme = victoire ? Math.min(100,(j.forme||100)+3) : Math.max(0,(j.forme||100)-3);
     }
+    if(totalGoalsAdded>0) gagnerXPSaison(totalGoalsAdded * 5);
 
-    data.equipe.forEach(j => {
-        j.matchs++;
-        j.contrats--;
-        j.forme = victoire ? Math.min(100, j.forme + 3) : Math.max(0, j.forme - 3);
-    });
-
-    if (data.championnat.matchsJoues >= 5) {
-        const recompense = data.championnat.victoires * 200;
+    if(data.championnat.matchsJoues>=5){
+        const recompense = data.championnat.victoires*200;
         data.coins += recompense;
         alert(`🏆 Championnat terminé !\n${data.championnat.victoires}/5 victoires\n+${recompense} coins`);
-        data.championnat = { actif: false, matchsJoues: 0, victoires: 0 };
-        document.getElementById("champBtn").disabled = false;
+        data.championnat = {actif:false,matchsJoues:0,victoires:0};
+        document.getElementById("champBtn").disabled=false;
+    } else {
+        document.getElementById("champProgress").innerHTML = `<h3>Championnat : ${data.championnat.matchsJoues}/5 | ${data.championnat.victoires} victoires</h3>`;
     }
 
-    document.getElementById("champProgress").innerHTML =
-        `<h3>Championnat : ${data.championnat.matchsJoues}/5 | ${data.championnat.victoires} victoires</h3>`;
-
-    sauvegarder();
-    majUI();
-    afficherEquipe();
+    sauvegarder(); majUI(); afficherEquipe();
 }
 
-function majDivision(victoire) {
-    const div = data.division;
+function genererScore(noteEquipe) {
+    let base = Math.max(0, Math.floor((noteEquipe - 60) / 10));
+    return Math.max(0, Math.min(5, base + Math.floor(Math.random() * 3)));
+}
 
-    if (victoire) {
-        div.progression++; // +1 victoire
-
-        if (div.progression >= 10 && div.numero > 1) {
-            div.numero--; // on monte
-            div.progression = 0; // reset progression
+function majDivision(victoire){
+    const div = data.division || {numero:10,progression:0};
+    if(victoire){
+        div.progression++;
+        if(div.progression>=10 && div.numero>1){
+            div.numero--;
+            div.progression = 0;
             alert(`🔥🎉 Promotion ! Division ${div.numero} atteinte !`);
             data.historique.push(`⬆️ Promotion en Division ${div.numero}`);
         }
     } else {
-        div.progression--; // -1 en cas de défaite
-
-        if (div.progression < 0 && div.numero < 10) {
-            div.numero++; // on redescend
-            div.progression = 9; // tu es proche du maintien
+        div.progression--;
+        if(div.progression<0 && div.numero<10){
+            div.numero++;
+            div.progression = 9;
             alert(`⬇️ Relégation... Division ${div.numero}`);
             data.historique.push(`⬇️ Relégation en Division ${div.numero}`);
         }
     }
+    data.division = div;
 }
 
-function demarrerEchange(){if(data.equipe.length<3){alert("Il faut au moins 3 joueurs !");return;}modeEchange={actif:true,selectionnes:[]};document.getElementById("annulerBtn").style.display="inline-block";alert("🔄 Mode échange activé !\nClique sur 3 joueurs à échanger.");afficherEquipe();}
+function echangerJoueurs(){if(data.equipe.length<3){alert("Il faut 3 joueurs minimum !");return;}modeEchange={actif:true,selectionnes:[]};document.getElementById("annulerBtn").style.display="inline-block";alert("🔄 Mode échange activé !\nClique sur 3 joueurs à échanger.");afficherEquipe();}
 function annulerEchange(){modeEchange={actif:false,selectionnes:[]};document.getElementById("annulerBtn").style.display="none";afficherEquipe();}
-function toggleSelectionEchange(idx){if(!modeEchange.actif)return;const pos=modeEchange.selectionnes.indexOf(idx);if(pos>-1){modeEchange.selectionnes.splice(pos,1);}else{if(modeEchange.selectionnes.length>=3){alert("Tu as déjà sélectionné 3 joueurs !");return;}modeEchange.selectionnes.push(idx);}afficherEquipe();if(modeEchange.selectionnes.length===3){confirmerEchange();}}
-function confirmerEchange(){if(!confirm(`Échanger ces 3 joueurs contre 1 joueur de meilleure rareté ?`))return;const selectionnes=modeEchange.selectionnes.map(i=>data.equipe[i]);const raretes=['bronze','silver','gold','legend','mythic'];const rareteMax=Math.max(...selectionnes.map(j=>raretes.indexOf(j.rarete)));const nouvelleRarete=raretes[Math.min(rareteMax+1,raretes.length-1)];const pool=joueursBase.filter(j=>j.rarete===nouvelleRarete&&!data.equipe.some(e=>e.nom===j.nom));if(pool.length===0){alert("Pas de joueur disponible pour cet échange !");annulerEchange();return;}const nouveau=pool[Math.floor(Math.random()*pool.length)];modeEchange.selectionnes.sort((a,b)=>b-a).forEach(i=>data.equipe.splice(i,1));ajouterJoueur(nouveau);alert(`🔄 Échange réussi !\nNouveau joueur : ${nouveau.nom} (${nouveau.rarete})`);annulerEchange();}
-function renouvellerContrats(){const besoin=data.equipe.filter(j=>(j.contrats||10)<=0);const cout=besoin.length*100;if(cout===0){alert("Aucun contrat à renouveler !");return;}if(data.coins<cout){alert(`Pas assez de coins ! (${cout} nécessaires)`);return;}data.coins-=cout;data.equipe.forEach(j=>{if((j.contrats||10)<=0)j.contrats=10;});alert(`💼 ${besoin.length} contrats renouvelés pour ${cout} coins`);sauvegarder();majUI();afficherEquipe();}
-function vendreJoueur(idx){const joueur=data.equipe[idx];const coeff={bronze:0.25,silver:0.25,gold:0.25,legend:0.3,mythic:0.3};const prix=Math.floor((prixMarche[joueur.rarete]||(joueur.note*10))*coeff[joueur.rarete]);if(!confirm(`Vendre ${joueur.nom} pour ${prix} coins ?`))return;data.coins+=prix;data.equipe.splice(idx,1);data.quetes.vente++;sauvegarder();majUI();afficherEquipe();}
-function afficherMarche(){const venteDiv=document.getElementById("marcheVenteList");venteDiv.innerHTML="";data.equipe.forEach((j,idx)=>{const prix=Math.floor(j.note*10);const c=document.createElement("div");c.className=`card ${j.rarete} possede`;c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div><div style="position:absolute;left:6px;bottom:28px;width:100%;display:flex;justify-content:center;"><button class="small-btn" onclick="vendreJoueur(${idx})">💰 ${prix}</button></div>`;venteDiv.appendChild(c);});genererMarche();}
-function genererMarche(){const now=Date.now();const elapsed=Math.floor((now-(window.marketState.derniereMaj||0))/1000);if(!window.marketState.cartes||window.marketState.cartes.length===0||elapsed>=300){const dispo=joueursBase.filter(j=>!data.equipe.some(p=>p.nom===j.nom));window.marketState.cartes=[];for(let i=0;i<5&&dispo.length>0;i++){const idx=Math.floor(Math.random()*dispo.length);window.marketState.cartes.push(dispo.splice(idx,1)[0]);}window.marketState.derniereMaj=now;window.marketState.tempsRestant=300;}else{window.marketState.tempsRestant=Math.max(300-elapsed,0);}const achatDiv=document.getElementById("marcheAchatList");achatDiv.innerHTML="";window.marketState.cartes.forEach(j=>{const prix=prixMarche[j.rarete]||100;const c=document.createElement("div");c.className=`card ${j.rarete}`;c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div><div style="position:absolute;left:6px;bottom:28px;width:100%;display:flex;justify-content:center;"><button class="small-btn" onclick="acheterJoueurMarche('${j.nom}',${prix})">🛒 ${prix}</button></div>`;achatDiv.appendChild(c);});document.getElementById("timerMarche").textContent=formatTemps(window.marketState.tempsRestant);if(window.marketState.intervalId){clearInterval(window.marketState.intervalId);}window.marketState.intervalId=setInterval(()=>{window.marketState.tempsRestant=Math.max((window.marketState.tempsRestant||0)-1,0);document.getElementById("timerMarche").textContent=formatTemps(window.marketState.tempsRestant);if(window.marketState.tempsRestant<=0){window.marketState.cartes=[];window.marketState.derniereMaj=Date.now();afficherMarche();}},1000);}function afficherRealisations(){const div=document.getElementById("realisationsList");div.innerHTML="";if(!data.realisations||data.realisations.length===0){data.realisations=realisationsBase.map(r=>({...r,debloquee:false}));}data.realisations.forEach(r=>{let valeur=0;if(r.type==='matchs')valeur=data.stats.matchs;if(r.type==='victoires')valeur=data.stats.victoires;if(r.type==='equipe')valeur=data.equipe.length;if(r.type==='coins')valeur=data.coins;if(valeur>=r.cible&&!r.debloquee){r.debloquee=true;alert(`🏅 Réalisation débloquée !\n${r.nom}\n${r.desc}`);}const badge=document.createElement('div');badge.className='badge'+(r.debloquee?'':' locked');badge.textContent=`${r.debloquee?'✅':''} ${r.nom} - ${r.desc}`;div.appendChild(badge);});sauvegarder();}
-function verifierRealisations(){if(!data.realisations||data.realisations.length===0){data.realisations=realisationsBase.map(r=>({...r,debloquee:false}));}data.realisations.forEach(r=>{let valeur=0;if(r.type==='matchs')valeur=data.stats.matchs;if(r.type==='victoires')valeur=data.stats.victoires;if(r.type==='equipe')valeur=data.equipe.length;if(r.type==='coins')valeur=data.coins;if(valeur>=r.cible&&!r.debloquee){r.debloquee=true;alert(`🏅 Réalisation débloquée !\n${r.nom}\n${r.desc}`);}});sauvegarder();}
-function afficherRegles(){document.getElementById("reglesModal").style.display="flex";}
-function fermerRegles(){document.getElementById("reglesModal").style.display="none";}
+function toggleSelectionEchange(idx){if(!modeEchange.actif)return;const pos=modeEchange.selectionnes.indexOf(idx);if(pos>-1){modeEchange.selectionnes.splice(pos,1);}else{if(modeEchange.selectionnes.length>=3){alert("Tu as déjà sélectionné 3 joueurs !");return;}modeEchange.selectionnes.push(idx);}afficherEquipe();if(modeEchange.selectionnes.length===3)confirmerEchange();}
+function confirmerEchange(){if(!confirm(`Échanger ces 3 joueurs contre 1 joueur de meilleure rareté ?`))return;const selectionnes=modeEchange.selectionnes.map(i=>data.equipe[i]);const raretes = ['bronze','silver','gold','legend','mythic','champions'];const rareteMax=Math.max(...selectionnes.map(j=>raretes.indexOf(j.rarete)));const nouvelleRarete=raretes[Math.min(rareteMax+1,raretes.length-1)];const pool=joueursBase.filter(j=>j.rarete===nouvelleRarete&&!data.equipe.some(e=>e.nom===j.nom));if(pool.length===0){alert("Pas de joueur disponible pour cet échange !");annulerEchange();return;}const nouveau=pool[Math.floor(Math.random()*pool.length)];modeEchange.selectionnes.sort((a,b)=>b-a).forEach(i=>data.equipe.splice(i,1));ajouterJoueur(nouveau);alert(`🔄 Échange réussi !\nNouveau joueur : ${nouveau.nom} (${nouveau.rarete})`);annulerEchange();}
+
+function renouvellerContrats(){const besoin=data.equipe.filter(j=>(j.contrats||10)<5).length;const cout=besoin*50;if(cout===0){alert("Aucun contrat à renouveler !");return;}if(data.coins<cout){alert(`Pas assez de coins ! (${cout} nécessaires)`);return;}data.coins-=cout;data.equipe.forEach(j=>{if((j.contrats||10)<5)j.contrats=10;});alert(`💼 ${besoin} contrats renouvelés pour ${cout} coins`);sauvegarder();majUI();afficherEquipe();}
+function vendreJoueur(idx){const joueur=data.equipe[idx];const coeff={bronze:0.25,silver:0.25,gold:0.25,legend:0.3,mythic:0.3,champions:0.35};const prix=Math.floor((prixMarche[joueur.rarete]||(joueur.note*10))*coeff[joueur.rarete]);if(!confirm(`Vendre ${joueur.nom} pour ${prix} coins ?`))return;data.coins+=prix;data.equipe.splice(idx,1);data.quetes.vente++;sauvegarder();majUI();afficherEquipe();}
+
+function afficherMarche(){const venteDiv=document.getElementById("marcheVenteList");venteDiv.innerHTML="";data.equipe.forEach((j,idx)=>{const prix=Math.floor(j.note*10);const c=document.createElement("div");c.className=`card ${j.rarete} possede`; if(j.rarete==="champions") c.className += " champions";c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div><div style="position:absolute;left:6px;bottom:28px;width:100%;display:flex;justify-content:center;"><button class="small-btn" onclick="vendreJoueur(${idx})">💰 ${prix}</button></div>`;venteDiv.appendChild(c);});genererMarche();}
+
+function genererMarche(){const now=Date.now();const elapsed=Math.floor((now-(window.marketState.derniereMaj||0))/1000);if(!window.marketState.cartes||window.marketState.cartes.length===0||elapsed>=300){const dispo=joueursBase.filter(j=>!data.equipe.some(p=>p.nom===j.nom));window.marketState.cartes=[];for(let i=0;i<5&&dispo.length>0;i++){const idx=Math.floor(Math.random()*dispo.length);window.marketState.cartes.push(dispo.splice(idx,1)[0]);}window.marketState.derniereMaj=now;window.marketState.tempsRestant=300;}else{window.marketState.tempsRestant=Math.max(300-elapsed,0);}const achatDiv=document.getElementById("marcheAchatList");achatDiv.innerHTML="";window.marketState.cartes.forEach(j=>{const prix=prixMarche[j.rarete]||100;const c=document.createElement("div");c.className=`card ${j.rarete}`; if(j.rarete==="champions") c.className += " champions";c.innerHTML=`${j.img?`<img src="${j.img}" alt="${j.nom}">`:""}<div class="rating">${j.note}</div><div class="position">${j.position}</div><div class="player-name">${j.nom}</div><div style="position:absolute;left:6px;bottom:28px;width:100%;display:flex;justify-content:center;"><button class="small-btn" onclick="acheterJoueurMarche('${j.nom}',${prix})">🛒 ${prix}</button></div>`;achatDiv.appendChild(c);});document.getElementById("timerMarche").textContent=formatTemps(window.marketState.tempsRestant);if(window.marketState.intervalId){clearInterval(window.marketState.intervalId);}window.marketState.intervalId=setInterval(()=>{window.marketState.tempsRestant=Math.max((window.marketState.tempsRestant||0)-1,0);document.getElementById("timerMarche").textContent=formatTemps(window.marketState.tempsRestant);if(window.marketState.tempsRestant<=0){window.marketState.cartes=[];window.marketState.derniereMaj=Date.now();afficherMarche();}},1000);}
+
+function formatTemps(sec){const m=Math.floor(sec/60);const s=sec%60;return`⏳ Renouvellement dans ${m}:${String(s).padStart(2,"0")}`;}
+function acheterJoueurMarche(nom,prix){if(data.coins<prix){alert("Pas assez de coins !");return;}const joueur=joueursBase.find(j=>j.nom===nom);if(!joueur){alert("Erreur : joueur introuvable");return;}ajouterJoueur(joueur);data.coins-=prix;window.marketState.cartes=window.marketState.cartes.filter(c=>c.nom!==nom);sauvegarder();majUI();afficherMarche();}
+
+function verifierContrats(){const sansContrat=data.equipe.filter(j=>(j.contrats||10)<=0);return sansContrat.length===0;}
+
+// Réalisations (affichage amélioré)
+function afficherRealisations() {
+  const div = document.getElementById("realisationsList");
+  div.innerHTML = "";
+
+  if (!data.realisations || data.realisations.length === 0) {
+    data.realisations = realisationsBase.map(r => ({ ...r, debloquee: false }));
+  }
+
+  div.style.display = "flex";
+  div.style.flexDirection = "column";
+  div.style.alignItems = "center";
+  div.style.justifyContent = "center";
+  div.style.textAlign = "center";
+  div.style.gap = "40px";
+
+  const categories = {
+    "Riche": data.realisations.filter(r => r.nom.toLowerCase().includes("riche")),
+    "Collectionneur": data.realisations.filter(r => r.nom.toLowerCase().includes("collectionneur") || r.type==='equipe'),
+    "Gagnant": data.realisations.filter(r => r.nom.toLowerCase().includes("gagnant") || r.type==='matchs' || r.type==='victoires')
+  };
+
+  for (const [nomCategorie, liste] of Object.entries(categories)) {
+    const bloc = document.createElement("div");
+    bloc.style.width = "100%";
+    bloc.style.maxWidth = "1000px";
+    bloc.style.display = "flex";
+    bloc.style.flexDirection = "column";
+    bloc.style.alignItems = "center";
+
+    const titre = document.createElement("h3");
+    titre.textContent = nomCategorie;
+    titre.style.fontSize = "22px";
+    titre.style.fontWeight = "bold";
+    titre.style.marginBottom = "15px";
+    titre.style.color = "var(--acc)";
+    titre.style.textTransform = "uppercase";
+    bloc.appendChild(titre);
+
+    const grille = document.createElement("div");
+    grille.style.display = "grid";
+    grille.style.gridTemplateColumns = "repeat(auto-fit, minmax(220px, 1fr))";
+    grille.style.justifyContent = "center";
+    grille.style.gap = "15px";
+    grille.style.width = "100%";
+    grille.style.maxWidth = "800px";
+
+    liste.forEach(r => {
+      let valeur = 0;
+      if (r.type === "matchs") valeur = data.stats.matchs;
+      if (r.type === "victoires") valeur = data.stats.victoires;
+      if (r.type === "equipe") valeur = data.equipe.length;
+      if (r.type === "coins") valeur = data.coins;
+
+      if (valeur >= r.cible && !r.debloquee) r.debloquee = true;
+
+      const card = document.createElement("div");
+      card.className = `real-card ${r.debloquee ? "completed" : "locked"}`;
+      card.innerHTML = `
+        <h4>${r.nom}</h4>
+        <p class="real-desc">${r.desc}</p>
+        <div class="real-meta">
+          <div>${valeur} / ${r.cible}</div>
+          <div class="real-badge ${r.debloquee ? "ok" : ""}">
+            ${r.debloquee ? "✅ Débloqué" : "🔒 Verrouillé"}
+          </div>
+        </div>
+      `;
+      grille.appendChild(card);
+    });
+
+    bloc.appendChild(grille);
+    div.appendChild(bloc);
+  }
+
+  sauvegarder();
+}
+
+function verifierRealisations() {
+  if (!data.realisations || data.realisations.length === 0) {
+    data.realisations = realisationsBase.map(r => ({ ...r, debloquee: false }));
+  }
+
+  data.realisations.forEach(r => {
+    let valeur = 0;
+    if (r.type === "matchs") valeur = data.stats.matchs;
+    if (r.type === "victoires") valeur = data.stats.victoires;
+    if (r.type === "equipe") valeur = data.equipe.length;
+    if (r.type === "coins") valeur = data.coins;
+
+    if (valeur >= r.cible && !r.debloquee) {
+      r.debloquee = true;
+      alert(`🏅 Réalisation débloquée !\n${r.nom}\n${r.desc}`);
+    }
+  });
+
+  sauvegarder();
+}
 
 chargerSauvegarde();
 if(data.theme==='light'){document.body.className='light-mode';document.querySelector('.theme-toggle').textContent='☀️';}
 majUI();
 afficherRegles();
+majPasse();
+
 // ✅ Installation PWA
 let installPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     installPrompt = e;
-    document.getElementById('installBtn').style.display = 'inline-block';
 });
 
 function installerApp() {
     if (!installPrompt) return;
     installPrompt.prompt();
     installPrompt = null;
-    document.getElementById('installBtn').style.display = 'none';
 }
 
+// petit util pour popup (utilisé si besoin)
+function closePopup(){document.querySelector('.popup').style.display='none';}
 </script>
-</body>
-</html><footer id="version-info" style="
+
+<footer id="version-info" style="
     position: fixed;
     bottom: 4px;
     width: 100%;
@@ -552,3 +827,6 @@ function installerApp() {
 ">
     📌 Version : 1.1.0
 </footer>
+
+</body>
+</html>
